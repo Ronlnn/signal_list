@@ -10,6 +10,7 @@ import FooterLink from "@/components/forms/FooterLink";
 import {signUpWithEmail} from "@/lib/actions/auth.actions";
 import {useRouter} from "next/navigation";
 import {toast} from "sonner";
+import {t} from "@/lib/i18n";
 
 const SignUp = () => {
     const router = useRouter()
@@ -37,48 +38,54 @@ const SignUp = () => {
             if(result.success) router.push('/');
         } catch (e) {
             console.error(e);
-            toast.error('Sign up failed', {
-                description: e instanceof Error ? e.message : 'Failed to create an account.'
+            toast.error(t('auth.signUpFailed'), {
+                description: e instanceof Error ? e.message : t('auth.signUpFailedDescription')
             })
         }
     }
 
     return (
         <>
-            <h1 className="form-title">Sign Up & Personalize</h1>
+            <h1 className="form-title">{t('auth.signUpTitle')}</h1>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
                 <InputField
                     name="fullName"
-                    label="Full Name"
-                    placeholder="John Doe"
+                    label={t('auth.fullName')}
+                    placeholder={t('auth.fullNamePlaceholder')}
                     register={register}
                     error={errors.fullName}
-                    validation={{ required: 'Full name is required', minLength: 2 }}
+                    validation={{
+                        required: t('auth.fullNameRequired'),
+                        minLength: { value: 2, message: t('auth.fullNameMinLength') },
+                    }}
                 />
 
                 <InputField
                     name="email"
-                    label="Email"
-                    placeholder="contact@jsmastery.com"
+                    label={t('auth.email')}
+                    placeholder={t('auth.emailPlaceholder')}
                     register={register}
                     error={errors.email}
-                    validation={{ required: 'Email name is required', pattern: /^\w+@\w+\.\w+$/, message: 'Email address is required' }}
+                    validation={{
+                        required: t('auth.emailRequired'),
+                        pattern: { value: /^\w+@\w+\.\w+$/, message: t('auth.emailInvalid') },
+                    }}
                 />
 
                 <InputField
                     name="password"
-                    label="Password"
-                    placeholder="Enter a strong password"
+                    label={t('auth.password')}
+                    placeholder={t('auth.strongPasswordPlaceholder')}
                     type="password"
                     register={register}
                     error={errors.password}
-                    validation={{ required: 'Password is required', minLength: 8 }}
+                    validation={{ required: t('auth.passwordRequired'), minLength: 8 }}
                 />
 
                 <CountrySelectField
                     name="country"
-                    label="Country"
+                    label={t('auth.country')}
                     control={control}
                     error={errors.country}
                     required
@@ -86,8 +93,8 @@ const SignUp = () => {
 
                 <SelectField
                     name="investmentGoals"
-                    label="Investment Goals"
-                    placeholder="Select your investment goal"
+                    label={t('auth.investmentGoals')}
+                    placeholder={t('auth.investmentGoalsPlaceholder')}
                     options={INVESTMENT_GOALS}
                     control={control}
                     error={errors.investmentGoals}
@@ -96,8 +103,8 @@ const SignUp = () => {
 
                 <SelectField
                     name="riskTolerance"
-                    label="Risk Tolerance"
-                    placeholder="Select your risk level"
+                    label={t('auth.riskTolerance')}
+                    placeholder={t('auth.riskTolerancePlaceholder')}
                     options={RISK_TOLERANCE_OPTIONS}
                     control={control}
                     error={errors.riskTolerance}
@@ -106,8 +113,8 @@ const SignUp = () => {
 
                 <SelectField
                     name="preferredIndustry"
-                    label="Preferred Industry"
-                    placeholder="Select your preferred industry"
+                    label={t('auth.preferredIndustry')}
+                    placeholder={t('auth.preferredIndustryPlaceholder')}
                     options={PREFERRED_INDUSTRIES}
                     control={control}
                     error={errors.preferredIndustry}
@@ -115,10 +122,10 @@ const SignUp = () => {
                 />
 
                 <Button type="submit" disabled={isSubmitting} className="yellow-btn w-full mt-5">
-                    {isSubmitting ? 'Creating Account' : 'Start Your Investing Journey'}
+                    {isSubmitting ? t('auth.creatingAccount') : t('auth.signUp')}
                 </Button>
 
-                <FooterLink text="Already have an account?" linkText="Sign in" href="/sign-in" />
+                <FooterLink text={t('auth.hasAccount')} linkText={t('auth.signInLink')} href="/sign-in" />
             </form>
         </>
     )

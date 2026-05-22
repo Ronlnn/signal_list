@@ -4,6 +4,7 @@ import {NAV_ITEMS} from "@/lib/constants";
 import Link from "next/link";
 import {usePathname} from "next/navigation";
 import SearchCommand from "@/components/SearchCommand";
+import {t} from "@/lib/i18n";
 
 const NavItems = ({initialStocks}: { initialStocks: StockWithWatchlistStatus[]}) => {
     const pathname = usePathname()
@@ -21,7 +22,7 @@ const NavItems = ({initialStocks}: { initialStocks: StockWithWatchlistStatus[]})
                     <li key="search-trigger">
                         <SearchCommand
                             renderAs="text"
-                            label="Search"
+                            label={t('search.openSearch')}
                             initialStocks={initialStocks}
                         />
                     </li>

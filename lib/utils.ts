@@ -13,11 +13,11 @@ export const formatTimeAgo = (timestamp: number) => {
 
   if (diffInHours > 24) {
     const days = Math.floor(diffInHours / 24);
-    return `${days} day${days > 1 ? 's' : ''} ago`;
+    return `${days} дн. назад`;
   } else if (diffInHours >= 1) {
-    return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
+    return `${diffInHours} ч. назад`;
   } else {
-    return `${diffInMinutes} minute${diffInMinutes > 1 ? 's' : ''} ago`;
+    return `${diffInMinutes} мин. назад`;
   }
 };
 
@@ -27,7 +27,7 @@ export function delay(ms: number) {
 
 // Formatted string like "$3.10T", "$900.00B", "$25.00M" or "$999,999.99"
 export function formatMarketCapValue(marketCapUsd: number): string {
-  if (!Number.isFinite(marketCapUsd) || marketCapUsd <= 0) return 'N/A';
+  if (!Number.isFinite(marketCapUsd) || marketCapUsd <= 0) return 'Нет данных';
 
   if (marketCapUsd >= 1e12) return `$${(marketCapUsd / 1e12).toFixed(2)}T`; // Trillions
   if (marketCapUsd >= 1e9) return `$${(marketCapUsd / 1e9).toFixed(2)}B`; // Billions
@@ -89,7 +89,7 @@ export const formatArticle = (
   headline: article.headline!.trim(),
   summary:
       article.summary!.trim().substring(0, isCompanyNews ? 200 : 150) + '...',
-  source: article.source || (isCompanyNews ? 'Company News' : 'Market News'),
+  source: article.source || (isCompanyNews ? 'Новости компании' : 'Рыночные новости'),
   url: article.url!,
   datetime: article.datetime!,
   image: article.image || '',
@@ -116,7 +116,7 @@ export const formatPrice = (price: number) => {
   }).format(price);
 };
 
-export const formatDateToday = new Date().toLocaleDateString('en-US', {
+export const formatDateToday = new Date().toLocaleDateString('ru-RU', {
   weekday: 'long',
   year: 'numeric',
   month: 'long',
@@ -127,10 +127,10 @@ export const formatDateToday = new Date().toLocaleDateString('en-US', {
 
 export const getAlertText = (alert: Alert) => {
   const condition = alert.alertType === 'upper' ? '>' : '<';
-  return `Price ${condition} ${formatPrice(alert.threshold)}`;
+  return `Цена ${condition} ${formatPrice(alert.threshold)}`;
 };
 
-export const getFormattedTodayDate = () => new Date().toLocaleDateString('en-US', {
+export const getFormattedTodayDate = () => new Date().toLocaleDateString('ru-RU', {
   weekday: 'long',
   year: 'numeric',
   month: 'long',

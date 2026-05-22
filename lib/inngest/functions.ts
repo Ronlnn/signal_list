@@ -11,6 +11,7 @@ import { getAllUsersForNewsEmail } from "@/lib/actions/user.actions";
 import { getWatchlistSymbolsByEmail } from "@/lib/actions/watchlist.actions";
 import { getNews } from "@/lib/actions/finnhub.actions";
 import { getFormattedTodayDate } from "@/lib/utils";
+import {t} from "@/lib/i18n";
 
 /* =========================
    1. WELCOME EMAIL
@@ -24,10 +25,10 @@ export const sendSignUpEmail = inngest.createFunction(
       console.log("📦 EVENT:", JSON.stringify(event, null, 2));
 
       const userProfile = `
-- Country: ${event.data.country}
-- Investment goals: ${event.data.investmentGoals}
-- Risk tolerance: ${event.data.riskTolerance}
-- Preferred industry: ${event.data.preferredIndustry}
+- Страна: ${event.data.country}
+- Инвестиционные цели: ${event.data.investmentGoals}
+- Готовность к риску: ${event.data.riskTolerance}
+- Предпочитаемая отрасль: ${event.data.preferredIndustry}
       `;
 
       const prompt = PERSONALIZED_WELCOME_EMAIL_PROMPT.replace(
@@ -39,7 +40,7 @@ export const sendSignUpEmail = inngest.createFunction(
 
       const introText =
         (await callGemini(prompt)) ||
-        "Thanks for joining Signalist. You now have the tools to track markets and make smarter moves.";
+        t('fallbacks.welcomeIntro');
 
       console.log("✅ Gemini response:", introText);
 
@@ -133,7 +134,7 @@ export const sendDailyNewsSummary = inngest.createFunction(
 
           summaries.push({
             user,
-            newsContent: newsContent || "No market news.",
+            newsContent: newsContent || t('fallbacks.noMarketNews'),
           });
 
           await new Promise((r) => setTimeout(r, 3000));
@@ -141,7 +142,7 @@ export const sendDailyNewsSummary = inngest.createFunction(
           console.error("❌ AI error:", user.email, e);
           summaries.push({
             user,
-            newsContent: "No market news.",
+            newsContent: t('fallbacks.noMarketNews'),
           });
         }
       }

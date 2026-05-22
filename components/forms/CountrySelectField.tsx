@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useState } from 'react';
@@ -21,11 +20,12 @@ import { Label } from '@/components/ui/label';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import countryList from 'react-select-country-list';
+import {t} from "@/lib/i18n";
 
 type CountrySelectProps = {
-    name: string;
+    name: keyof SignUpFormData;
     label: string;
-    control: Control<any>;
+    control: Control<SignUpFormData>;
     error?: FieldError;
     required?: boolean;
 };
@@ -66,7 +66,7 @@ const CountrySelect = ({
               <span>{countries.find((c) => c.value === value)?.label}</span>
             </span>
                     ) : (
-                        'Select your country...'
+                        t('country.select')
                     )}
                     <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
                 </Button>
@@ -77,11 +77,11 @@ const CountrySelect = ({
             >
                 <Command className='bg-gray-800 border-gray-600'>
                     <CommandInput
-                        placeholder='Search countries...'
+                        placeholder={t('country.search')}
                         className='country-select-input'
                     />
                     <CommandEmpty className='country-select-empty'>
-                        No country found.
+                        {t('country.notFound')}
                     </CommandEmpty>
                     <CommandList className='max-h-60 bg-gray-800 scrollbar-hide-default'>
                         <CommandGroup className='bg-gray-800'>
@@ -131,7 +131,7 @@ export const CountrySelectField = ({
                 name={name}
                 control={control}
                 rules={{
-                    required: required ? `Please select ${label.toLowerCase()}` : false,
+                    required: required ? t('validation.selectRequired', { label: label.toLowerCase() }) : false,
                 }}
                 render={({ field }) => (
                     <CountrySelect value={field.value} onChange={field.onChange} />
@@ -139,7 +139,7 @@ export const CountrySelectField = ({
             />
             {error && <p className='text-sm text-red-500'>{error.message}</p>}
             <p className='text-xs text-gray-500'>
-                Helps us show market data and news relevant to you.
+                {t('country.helper')}
             </p>
         </div>
     );

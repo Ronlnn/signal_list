@@ -1,14 +1,15 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { CommandDialog, CommandEmpty, CommandInput, CommandList } from "@/components/ui/command"
 import {Button} from "@/components/ui/button";
 import {Loader2,  TrendingUp} from "lucide-react";
 import Link from "next/link";
 import {searchStocks} from "@/lib/actions/finnhub.actions";
 import {useDebounce} from "@/hooks/useDebounce";
+import {t} from "@/lib/i18n";
 
-export default function SearchCommand({ renderAs = 'button', label = 'Add stock', initialStocks }: SearchCommandProps) {
+export default function SearchCommand({ renderAs = 'button', label = t('search.addStock'), initialStocks }: SearchCommandProps) {
   const [open, setOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [loading, setLoading] = useState(false)
@@ -28,7 +29,7 @@ export default function SearchCommand({ renderAs = 'button', label = 'Add stock'
     return () => window.removeEventListener("keydown", onKeyDown)
   }, [])
 
-  const handleSearch = async () => {
+  const handleSearch = useCallback(async () => {
     if(!isSearchMode) return setStocks(initialStocks);
 
     setLoading(true)
@@ -40,13 +41,13 @@ export default function SearchCommand({ renderAs = 'button', label = 'Add stock'
     } finally {
       setLoading(false)
     }
-  }
+  }, [initialStocks, isSearchMode, searchTerm]);
 
   const debouncedSearch = useDebounce(handleSearch, 300);
 
   useEffect(() => {
     debouncedSearch();
-  }, [searchTerm]);
+  }, [debouncedSearch]);
 
   const handleSelectStock = () => {
     setOpen(false);
@@ -67,23 +68,23 @@ export default function SearchCommand({ renderAs = 'button', label = 'Add stock'
       )}
       <CommandDialog open={open} onOpenChange={setOpen} className="search-dialog">
         <div className="search-field">
-          <CommandInput value={searchTerm} onValueChange={setSearchTerm} placeholder="Search stocks..." className="search-input" />
+          <CommandInput value={searchTerm} onValueChange={setSearchTerm} placeholder={t('search.placeholder')} className="search-input" />
           {loading && <Loader2 className="search-loader" />}
         </div>
         <CommandList className="search-list">
           {loading ? (
-              <CommandEmpty className="search-list-empty">Loading stocks...</CommandEmpty>
+              <CommandEmpty className="search-list-empty">{t('search.loading')}</CommandEmpty>
           ) : displayStocks?.length === 0 ? (
               <div className="search-list-indicator">
-                {isSearchMode ? 'No results found' : 'No stocks available'}
+                {isSearchMode ? t('search.noResults') : t('search.noStocks')}
               </div>
             ) : (
             <ul>
               <div className="search-count">
-                {isSearchMode ? 'Search results' : 'Popular stocks'}
+                {isSearchMode ? t('search.results') : t('search.popular')}
                 {` `}({displayStocks?.length || 0})
               </div>
-              {displayStocks?.map((stock, i) => (
+              {displayStocks?.map((stock) => (
                   <li key={stock.symbol} className="search-item">
                     <Link
                         href={`/stocks/${stock.symbol}`}

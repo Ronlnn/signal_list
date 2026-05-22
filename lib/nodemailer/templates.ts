@@ -1,11 +1,11 @@
 export const WELCOME_EMAIL_TEMPLATE = `<!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="format-detection" content="telephone=no">
     <meta name="x-apple-disable-message-reformatting">
-    <title>Welcome to Signalist</title>
+    <title>Добро пожаловать в Signalist</title>
     <!--[if mso]>
     <noscript>
         <xml>
@@ -97,14 +97,14 @@ export const WELCOME_EMAIL_TEMPLATE = `<!DOCTYPE html>
                     <!-- Header with Logo -->
                     <tr>
                         <td align="left" class="mobile-header-padding" style="padding: 40px 40px 20px 40px;">
-                            <img src="https://ik.imagekit.io/a6fkjou7d/logo.png?updatedAt=1756378431634" alt="Signalist Logo" width="150" style="max-width: 100%; height: auto;">
+                            <img src="https://ik.imagekit.io/a6fkjou7d/logo.png?updatedAt=1756378431634" alt="Логотип Signalist" width="150" style="max-width: 100%; height: auto;">
                         </td>
                     </tr>
                     
                     <!-- Dashboard Preview Image -->
                     <tr>
                         <td align="center" class="dashboard-preview" style="padding: 40px 40px 0px 40px;">
-                            <img src="https://ik.imagekit.io/a6fkjou7d/dashboard-preview.png?updatedAt=1756378548102" alt="Signalist Dashboard Preview" width="100%" style="max-width: 520px; width: 100%; height: auto; border-radius: 12px; border: 1px solid #30333A;">
+                            <img src="https://ik.imagekit.io/a6fkjou7d/dashboard-preview.png?updatedAt=1756378548102" alt="Превью панели Signalist" width="100%" style="max-width: 520px; width: 100%; height: auto; border-radius: 12px; border: 1px solid #30333A;">
                         </td>
                     </tr>
                     
@@ -114,7 +114,7 @@ export const WELCOME_EMAIL_TEMPLATE = `<!DOCTYPE html>
                             
                             <!-- Welcome Heading -->
                             <h1 class="mobile-title dark-text" style="margin: 0 0 30px 0; font-size: 24px; font-weight: 600; color: #FDD458; line-height: 1.2;">
-                                Welcome aboard {{name}}
+                                Добро пожаловать, {{name}}
                             </h1>
                             
                             <!-- Intro Text -->
@@ -122,19 +122,19 @@ export const WELCOME_EMAIL_TEMPLATE = `<!DOCTYPE html>
                             
                             <!-- Feature List Label -->
                             <p class="mobile-text dark-text-secondary" style="margin: 0 0 15px 0; font-size: 16px; line-height: 1.6; color: #CCDADC; font-weight: 600;">
-                                Here's what you can do right now:
+                                Что можно сделать прямо сейчас:
                             </p>
                             
                             <!-- Feature List -->
                             <ul class="mobile-text dark-text-secondary" style="margin: 0 0 30px 0; padding-left: 20px; font-size: 16px; line-height: 1.6; color: #CCDADC;">
-                                <li style="margin-bottom: 12px;">Set up your watchlist to follow your favorite stocks</li>
-                                <li style="margin-bottom: 12px;">Create price and volume alerts so you never miss a move</li>
-                                <li style="margin-bottom: 12px;">Explore the dashboard for trends and the latest market news</li>
+                                <li style="margin-bottom: 12px;">Настройте список наблюдения, чтобы следить за любимыми акциями</li>
+                                <li style="margin-bottom: 12px;">Создайте уведомления по цене и объему, чтобы не пропускать важные движения</li>
+                                <li style="margin-bottom: 12px;">Изучайте тренды и свежие рыночные новости на панели</li>
                             </ul>
                             
                             <!-- Additional Text -->
                             <p class="mobile-text dark-text-secondary" style="margin: 0 0 40px 0; font-size: 16px; line-height: 1.6; color: #CCDADC;">
-                                We'll keep you informed with timely updates, insights, and alerts — so you can focus on making the right calls.
+                                Мы будем присылать своевременные обновления, идеи и уведомления, чтобы вы могли сосредоточиться на взвешенных решениях.
                             </p>
                             
                             <!-- CTA Button -->
@@ -142,7 +142,7 @@ export const WELCOME_EMAIL_TEMPLATE = `<!DOCTYPE html>
                                 <tr>
                                     <td align="center">
                                         <a href="https://stock-market-dev.vercel.app/" style="display: block; width: 100%; background: linear-gradient(135deg, #FDD458 0%, #E8BA40 100%); color: #000000; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-size: 16px; font-weight: 500; line-height: 1; text-align: center; box-sizing: border-box;">
-                                            Go to Dashboard
+                                            Перейти в панель
                                         </a>
                                     </td>
                                 </tr>
@@ -151,8 +151,8 @@ export const WELCOME_EMAIL_TEMPLATE = `<!DOCTYPE html>
                             <!-- Footer Text -->
                             <p class="mobile-text dark-text-muted" style="margin: 40px 0 0 0; font-size: 14px; line-height: 1.5; color: #CCDADC !important; text-align: center;">
                                Signalist HQ, 200 Market Street, San Francisco, CA 94105<br>
-                                <a href="#" style="color: #CCDADC !important; text-decoration: underline;">Unsubscribe</a> | 
-                                <a href="https://stock-market-dev.vercel.app/" style="color: #CCDADC !important; text-decoration: underline;">Visit Signalist</a><br>
+                                <a href="#" style="color: #CCDADC !important; text-decoration: underline;">Отписаться</a> | 
+                                <a href="https://stock-market-dev.vercel.app/" style="color: #CCDADC !important; text-decoration: underline;">Открыть Signalist</a><br>
                                 © 2025 Signalist
                             </p>
                         </td>
@@ -166,13 +166,13 @@ export const WELCOME_EMAIL_TEMPLATE = `<!DOCTYPE html>
 </html>`;
 
 export const NEWS_SUMMARY_EMAIL_TEMPLATE = `<!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="format-detection" content="telephone=no">
     <meta name="x-apple-disable-message-reformatting">
-    <title>Market News Summary Today</title>
+    <title>Сводка рыночных новостей за сегодня</title>
     <!--[if mso]>
     <noscript>
         <xml>
@@ -260,7 +260,7 @@ export const NEWS_SUMMARY_EMAIL_TEMPLATE = `<!DOCTYPE html>
                     <!-- Header with Logo -->
                     <tr>
                         <td align="left" class="mobile-header-padding" style="padding: 40px 40px 20px 40px;">
-                            <img src="https://ik.imagekit.io/a6fkjou7d/logo.png?updatedAt=1756378431634" alt="Signalist Logo" width="150" style="max-width: 100%; height: auto;">
+                            <img src="https://ik.imagekit.io/a6fkjou7d/logo.png?updatedAt=1756378431634" alt="Логотип Signalist" width="150" style="max-width: 100%; height: auto;">
                         </td>
                     </tr>
                     
@@ -270,7 +270,7 @@ export const NEWS_SUMMARY_EMAIL_TEMPLATE = `<!DOCTYPE html>
                             
                             <!-- Header -->
                             <h1 class="mobile-title dark-text" style="margin: 0 0 20px 0; font-size: 24px; font-weight: 600; color: #FDD458; line-height: 1.2;">
-                                Market News Summary Today
+                                Сводка рыночных новостей за сегодня
                             </h1>
                             
                             <!-- Date -->
@@ -284,11 +284,11 @@ export const NEWS_SUMMARY_EMAIL_TEMPLATE = `<!DOCTYPE html>
                             <!-- Footer Text -->
                             <div style="text-align: center; margin: 40px 0 0 0;">
                                 <p style="margin: 0 0 10px 0; font-size: 14px; line-height: 1.5; color: #CCDADC !important;">
-                                    You're receiving this because you subscribed to Signalist news updates.
+                                    Вы получили это письмо, потому что подписались на новости Signalist.
                                 </p>
                                 <p style="margin: 0 0 10px 0; font-size: 14px; line-height: 1.5; color: #CCDADC !important;">
-                                    <a href="#" style="color: #CCDADC !important; text-decoration: underline;">Unsubscribe</a> | 
-                                    <a href="https://signalist.app" style="color: #CCDADC !important; text-decoration: underline;">Visit Signalist</a>
+                                    <a href="#" style="color: #CCDADC !important; text-decoration: underline;">Отписаться</a> | 
+                                    <a href="https://signalist.app" style="color: #CCDADC !important; text-decoration: underline;">Открыть Signalist</a>
                                 </p>
                                 <p style="margin: 0; font-size: 14px; line-height: 1.5; color: #CCDADC !important;">
                                     © 2025 Signalist
@@ -305,13 +305,13 @@ export const NEWS_SUMMARY_EMAIL_TEMPLATE = `<!DOCTYPE html>
 </html>`;
 
 export const STOCK_ALERT_UPPER_EMAIL_TEMPLATE = `<!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="format-detection" content="telephone=no">
     <meta name="x-apple-disable-message-reformatting">
-    <title>Price Alert: {{symbol}} Hit Upper Target</title>
+    <title>Ценовое уведомление: {{symbol}} выше верхней цели</title>
     <!--[if mso]>
     <noscript>
         <xml>
@@ -410,7 +410,7 @@ export const STOCK_ALERT_UPPER_EMAIL_TEMPLATE = `<!DOCTYPE html>
                     <!-- Header with Logo -->
                     <tr>
                         <td align="left" class="mobile-header-padding" style="padding: 40px 40px 20px 40px;">
-                            <img src="https://ik.imagekit.io/a6fkjou7d/logo.png?updatedAt=1756378431634" alt="Signalist Logo" width="150" style="max-width: 100%; height: auto;">
+                            <img src="https://ik.imagekit.io/a6fkjou7d/logo.png?updatedAt=1756378431634" alt="Логотип Signalist" width="150" style="max-width: 100%; height: auto;">
                         </td>
                     </tr>
                     
@@ -421,7 +421,7 @@ export const STOCK_ALERT_UPPER_EMAIL_TEMPLATE = `<!DOCTYPE html>
                                 <tr>
                                     <td align="center">
                                         <h1 class="mobile-title" style="margin: 0 0 10px 0; font-size: 24px; font-weight: 700; color: #ffffff; line-height: 1.2;">
-                                            📈 Price Above Reached
+                                            📈 Цена выше цели
                                         </h1>
                                         <p style="margin: 0; font-size: 16px; color: #ffffff; opacity: 0.9;">
                                             {{timestamp}}
@@ -448,7 +448,7 @@ export const STOCK_ALERT_UPPER_EMAIL_TEMPLATE = `<!DOCTYPE html>
                                 <!-- Current Price -->
                                 <div style="margin-bottom: 20px;">
                                     <p class="dark-text-muted" style="margin: 0 0 5px 0; font-size: 14px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;">
-                                        Current Price
+                                        Текущая цена
                                     </p>
                                     <p class="mobile-price" style="margin: 0; font-size: 36px; font-weight: 700; color: #10b981;">
                                         {{currentPrice}}
@@ -459,23 +459,23 @@ export const STOCK_ALERT_UPPER_EMAIL_TEMPLATE = `<!DOCTYPE html>
                             <!-- Alert Details -->
                             <div class="dark-info-box" style="background-color: #212328; border-radius: 8px; padding: 20px; margin-bottom: 30px;">
                                 <h3 class="dark-text" style="margin: 0 0 15px 0; font-size: 18px; font-weight: 600; color: #ffffff;">
-                                    Alert Details
+                                    Детали уведомления
                                 </h3>
                                 <p class="mobile-text dark-text-secondary" style="margin: 0 0 10px 0; font-size: 16px; line-height: 1.5; color: #9ca3af;">
-                                    <strong>Target Price:</strong> {{targetPrice}}
+                                    <strong>Целевая цена:</strong> {{targetPrice}}
                                 </p>
                                 <p class="mobile-text dark-text-secondary" style="margin: 0 0 10px 0; font-size: 16px; line-height: 1.5; color: #9ca3af;">
-                                    <strong>Trigger:</strong> Price exceeded your upper threshold of {{targetPrice}}
+                                    <strong>Условие:</strong> цена превысила верхний порог {{targetPrice}}
                                 </p>
                             </div>
                             
                             <!-- Success Message -->
                             <div style="background-color: #050505; border: 1px solid #374151; border-radius: 8px; padding: 20px; margin-bottom: 30px;">
                                 <h3 style="margin: 0 0 8px 0; font-size: 18px; font-weight: 600; color: #E8BA40;">
-                                    Opportunity Alert!
+                                    Возможность на рынке
                                 </h3>
                                 <p class="mobile-text" style="margin: 0; font-size: 14px; line-height: 1.5; color: #ccdadc;">
-                                    {{symbol}} has reached your target price! This could be a good time to review your position and consider taking profits or adjusting your strategy.
+                                    {{symbol}} достиг вашей целевой цены. Это хороший момент, чтобы пересмотреть позицию, зафиксировать прибыль или скорректировать стратегию.
                                 </p>
                             </div>
                             
@@ -484,7 +484,7 @@ export const STOCK_ALERT_UPPER_EMAIL_TEMPLATE = `<!DOCTYPE html>
                                 <tr>
                                     <td align="center">
                                         <a href="https://stock-market-dev.vercel.app/" style="display: block; width: 100%; max-width: 100%; box-sizing: border-box; color: #000000; background-color: #E8BA40; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-size: 16px; font-weight: 500; line-height: 1; text-align: center;">
-                                            View Dashboard
+                                            Открыть панель
                                         </a>
                                     </td>
                                 </tr>
@@ -493,11 +493,11 @@ export const STOCK_ALERT_UPPER_EMAIL_TEMPLATE = `<!DOCTYPE html>
                              <!-- Footer Text -->
                             <div style="text-align: center; margin: 40px 0 0 0;">
                                 <p style="margin: 0 0 10px 0; font-size: 14px; line-height: 1.5; color: #CCDADC !important;">
-                                    You're receiving this because you subscribed to Signalist news updates.
+                                    Вы получили это письмо, потому что подписались на уведомления Signalist.
                                 </p>
                                 <p style="margin: 0 0 10px 0; font-size: 14px; line-height: 1.5; color: #CCDADC !important;">
-                                    <a href="#" style="color: #CCDADC !important; text-decoration: underline;">Unsubscribe</a> | 
-                                    <a href="https://signalist.app" style="color: #CCDADC !important; text-decoration: underline;">Visit Signalist</a>
+                                    <a href="#" style="color: #CCDADC !important; text-decoration: underline;">Отписаться</a> | 
+                                    <a href="https://signalist.app" style="color: #CCDADC !important; text-decoration: underline;">Открыть Signalist</a>
                                 </p>
                                 <p style="margin: 0; font-size: 14px; line-height: 1.5; color: #CCDADC !important;">
                                     © 2025 Signalist
@@ -514,13 +514,13 @@ export const STOCK_ALERT_UPPER_EMAIL_TEMPLATE = `<!DOCTYPE html>
 </html>`;
 
 export const STOCK_ALERT_LOWER_EMAIL_TEMPLATE = `<!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="format-detection" content="telephone=no">
     <meta name="x-apple-disable-message-reformatting">
-    <title>Price Alert: {{symbol}} Hit Lower Target</title>
+    <title>Ценовое уведомление: {{symbol}} ниже нижней цели</title>
     <!--[if mso]>
     <noscript>
         <xml>
@@ -619,7 +619,7 @@ export const STOCK_ALERT_LOWER_EMAIL_TEMPLATE = `<!DOCTYPE html>
                     <!-- Header with Logo -->
                     <tr>
                         <td align="left" class="mobile-header-padding" style="padding: 40px 40px 20px 40px;">
-                            <img src="https://ik.imagekit.io/a6fkjou7d/logo.png?updatedAt=1756378431634" alt="Signalist Logo" width="150" style="max-width: 100%; height: auto;">
+                            <img src="https://ik.imagekit.io/a6fkjou7d/logo.png?updatedAt=1756378431634" alt="Логотип Signalist" width="150" style="max-width: 100%; height: auto;">
                         </td>
                     </tr>
                     
@@ -630,7 +630,7 @@ export const STOCK_ALERT_LOWER_EMAIL_TEMPLATE = `<!DOCTYPE html>
                                 <tr>
                                     <td align="center">
                                         <h1 class="mobile-title" style="margin: 0 0 10px 0; font-size: 24px; font-weight: 700; color: #ffffff; line-height: 1.2;">
-                                            📉 Price Below Hit
+                                            📉 Цена ниже цели
                                         </h1>
                                         <p style="margin: 0; font-size: 16px; color: #ffffff; opacity: 0.9;">
                                             {{timestamp}}
@@ -657,7 +657,7 @@ export const STOCK_ALERT_LOWER_EMAIL_TEMPLATE = `<!DOCTYPE html>
                                 <!-- Current Price -->
                                 <div style="margin-bottom: 20px;">
                                     <p class="dark-text-muted" style="margin: 0 0 5px 0; font-size: 14px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;">
-                                        Current Price
+                                        Текущая цена
                                     </p>
                                     <p class="mobile-price" style="margin: 0; font-size: 36px; font-weight: 700; color: #ef4444;">
                                         {{currentPrice}}
@@ -668,23 +668,23 @@ export const STOCK_ALERT_LOWER_EMAIL_TEMPLATE = `<!DOCTYPE html>
                             <!-- Alert Details -->
                             <div class="dark-info-box" style="background-color: #212328; border-radius: 8px; padding: 20px; margin-bottom: 30px;">
                                 <h3 class="dark-text" style="margin: 0 0 15px 0; font-size: 18px; font-weight: 600; color: #ffffff;">
-                                    Alert Details
+                                    Детали уведомления
                                 </h3>
                                 <p class="mobile-text dark-text-secondary" style="margin: 0 0 10px 0; font-size: 16px; line-height: 1.5; color: #9ca3af;">
-                                    <strong>Target Price:</strong> {{targetPrice}}
+                                    <strong>Целевая цена:</strong> {{targetPrice}}
                                 </p>
                                 <p class="mobile-text dark-text-secondary" style="margin: 0 0 10px 0; font-size: 16px; line-height: 1.5; color: #9ca3af;">
-                                    <strong>Trigger:</strong> Price dropped below your lower threshold of {{targetPrice}}
+                                    <strong>Условие:</strong> цена опустилась ниже нижнего порога {{targetPrice}}
                                 </p>
                             </div>
                             
                             <!-- Opportunity Message -->
                             <div style="background-color: #050505; border: 1px solid #374151; border-radius: 8px; padding: 20px; margin-bottom: 30px;">
                                 <h3 style="margin: 0 0 8px 0; font-size: 18px; font-weight: 600; color: #E8BA40;">
-                                    Price Dropped
+                                    Цена снизилась
                                 </h3>
                                 <p class="mobile-text" style="margin: 0; font-size: 14px; line-height: 1.5; color: #ccdadc;">
-                                    {{symbol}} dropped below your target price. This might be a good time to buy.
+                                    {{symbol}} опустился ниже вашей целевой цены. Это может быть поводом внимательнее изучить покупку.
                                 </p>
                             </div>
                             
@@ -693,7 +693,7 @@ export const STOCK_ALERT_LOWER_EMAIL_TEMPLATE = `<!DOCTYPE html>
                                 <tr>
                                     <td align="center">
                                         <a href="https://stock-market-dev.vercel.app/" style="display: block; width: 100%; max-width: 100%; box-sizing: border-box; background-color: #E8BA40; color: #000000; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-size: 16px; font-weight: 500; line-height: 1; text-align: center;">
-                                            View Dashboard
+                                            Открыть панель
                                         </a>
                                     </td>
                                 </tr>
@@ -702,11 +702,11 @@ export const STOCK_ALERT_LOWER_EMAIL_TEMPLATE = `<!DOCTYPE html>
                              <!-- Footer Text -->
                             <div style="text-align: center; margin: 40px 0 0 0;">
                                 <p style="margin: 0 0 10px 0; font-size: 14px; line-height: 1.5; color: #CCDADC !important;">
-                                    You're receiving this because you subscribed to Signalist news updates.
+                                    Вы получили это письмо, потому что подписались на уведомления Signalist.
                                 </p>
                                 <p style="margin: 0 0 10px 0; font-size: 14px; line-height: 1.5; color: #CCDADC !important;">
-                                    <a href="#" style="color: #CCDADC !important; text-decoration: underline;">Unsubscribe</a> | 
-                                    <a href="https://signalist.app" style="color: #CCDADC !important; text-decoration: underline;">Visit Signalist</a>
+                                    <a href="#" style="color: #CCDADC !important; text-decoration: underline;">Отписаться</a> | 
+                                    <a href="https://signalist.app" style="color: #CCDADC !important; text-decoration: underline;">Открыть Signalist</a>
                                 </p>
                                 <p style="margin: 0; font-size: 14px; line-height: 1.5; color: #CCDADC !important;">
                                     © 2025 Signalist
@@ -723,13 +723,13 @@ export const STOCK_ALERT_LOWER_EMAIL_TEMPLATE = `<!DOCTYPE html>
 </html>`;
 
 export const VOLUME_ALERT_EMAIL_TEMPLATE = `<!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="format-detection" content="telephone=no">
     <meta name="x-apple-disable-message-reformatting">
-    <title>Volume Alert: {{symbol}}</title>
+    <title>Уведомление об объеме: {{symbol}}</title>
     <!--[if mso]>
     <noscript>
         <xml>
@@ -819,7 +819,7 @@ export const VOLUME_ALERT_EMAIL_TEMPLATE = `<!DOCTYPE html>
                     <!-- Header with Logo -->
                     <tr>
                         <td align="left" class="mobile-header-padding" style="padding: 40px 40px 20px 40px;">
-                            <img src="https://ik.imagekit.io/a6fkjou7d/logo.png?updatedAt=1756378431634" alt="Signalist Logo" width="150" style="max-width: 100%; height: auto;">
+                            <img src="https://ik.imagekit.io/a6fkjou7d/logo.png?updatedAt=1756378431634" alt="Логотип Signalist" width="150" style="max-width: 100%; height: auto;">
                         </td>
                     </tr>
                     
@@ -830,7 +830,7 @@ export const VOLUME_ALERT_EMAIL_TEMPLATE = `<!DOCTYPE html>
                                 <tr>
                                     <td align="center">
                                         <h1 class="mobile-title" style="margin: 0 0 10px 0; font-size: 24px; font-weight: 700; color: #ffffff; line-height: 1.2;">
-                                            📊 Volume Alert
+                                            📊 Уведомление об объеме
                                         </h1>
                                         <p style="margin: 0; font-size: 16px; color: #ffffff; opacity: 0.9;">
                                             {{timestamp}}
@@ -857,7 +857,7 @@ export const VOLUME_ALERT_EMAIL_TEMPLATE = `<!DOCTYPE html>
                                 <!-- Current Volume -->
                                 <div style="margin-bottom: 20px;">
                                     <p class="dark-text-muted" style="margin: 0 0 5px 0; font-size: 14px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;">
-                                        Current Volume
+                                        Текущий объем
                                     </p>
                                     <p class="mobile-volume" style="margin: 0; font-size: 36px; font-weight: 700; color: #7c3aed;">
                                         {{currentVolume}}M
@@ -867,7 +867,7 @@ export const VOLUME_ALERT_EMAIL_TEMPLATE = `<!DOCTYPE html>
                                 <!-- Current Price (smaller) -->
                                 <div class="dark-border" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #30333A;">
                                     <p class="dark-text-secondary" style="margin: 0 0 5px 0; font-size: 12px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px;">
-                                        Current Price
+                                        Текущая цена
                                     </p>
                                     <p style="margin: 0; font-size: 18px; font-weight: 600; color: {{priceColor}};">
                                         {{currentPrice}} ({{changeDirection}}{{changePercent}}%)
@@ -878,26 +878,26 @@ export const VOLUME_ALERT_EMAIL_TEMPLATE = `<!DOCTYPE html>
                             <!-- Alert Details -->
                             <div class="dark-info-box" style="background-color: #1f2937; border: 1px solid #374151; border-radius: 8px; padding: 20px; margin-bottom: 30px;">
                                 <h3 class="dark-text" style="margin: 0 0 15px 0; font-size: 18px; font-weight: 600; color: #ffffff;">
-                                    Volume Spike Details
+                                    Детали всплеска объема
                                 </h3>
                                 <p class="mobile-text dark-text-secondary" style="margin: 0 0 10px 0; font-size: 16px; line-height: 1.5; color: #9ca3af;">
-                                    <strong>Trigger:</strong> {{alertMessage}}
+                                    <strong>Условие:</strong> {{alertMessage}}
                                 </p>
                                 <p class="mobile-text dark-text-secondary" style="margin: 0 0 10px 0; font-size: 16px; line-height: 1.5; color: #9ca3af;">
-                                    <strong>Average Volume:</strong> {{averageVolume}}M shares
+                                    <strong>Средний объем:</strong> {{averageVolume}} млн акций
                                 </p>
                                 <p class="mobile-text dark-text-secondary" style="margin: 0; font-size: 16px; line-height: 1.5; color: #9ca3af;">
-                                    <strong>Spike Detected:</strong> {{volumeSpike}} above normal trading activity
+                                    <strong>Всплеск:</strong> {{volumeSpike}} выше обычной торговой активности
                                 </p>
                             </div>
                             
                             <!-- What This Means -->
                             <div class="dark-info-box" style="background-color: #1f2937; border: 1px solid #374151; border-radius: 8px; padding: 20px; margin-bottom: 30px;">
                                 <h3 class="dark-text" style="margin: 0 0 15px 0; font-size: 18px; font-weight: 600; color: #ffffff;">
-                                    💡 What This Means
+                                    💡 Что это значит
                                 </h3>
                                 <p class="mobile-text dark-text-secondary" style="margin: 0; font-size: 16px; line-height: 1.5; color: #9ca3af;">
-                                    High volume often indicates increased investor interest, potential news events, or significant price movements. This could signal an opportunity to investigate what's driving the activity.
+                                    Высокий объем часто говорит о повышенном интересе инвесторов, важных новостях или заметном движении цены. Это повод разобраться, что именно вызвало активность.
                                 </p>
                             </div>
                             
@@ -906,7 +906,7 @@ export const VOLUME_ALERT_EMAIL_TEMPLATE = `<!DOCTYPE html>
                                 <tr>
                                     <td align="center">
                                         <a href="https://stock-market-dev.vercel.app/" style="display: inline-block; background-color: #E8BA40; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-size: 16px; font-weight: 500; line-height: 1;">
-                                            View Dashboard
+                                            Открыть панель
                                         </a>
                                     </td>
                                 </tr>
@@ -915,18 +915,18 @@ export const VOLUME_ALERT_EMAIL_TEMPLATE = `<!DOCTYPE html>
                             <!-- Disclaimer -->
                             <div class="dark-info-box" style="background-color: #1f2937; border-radius: 6px; padding: 15px; margin-bottom: 20px; border: 1px solid #374151;">
                                 <p class="dark-text-muted" style="margin: 0; font-size: 13px; line-height: 1.4; color: #6b7280; text-align: center;">
-                                    <strong>Disclaimer:</strong> This alert is for informational purposes only and should not be considered investment advice. High volume doesn't guarantee price direction. Always do your own research before making investment decisions.
+                                    <strong>Дисклеймер:</strong> это уведомление носит информационный характер и не является инвестиционной рекомендацией. Высокий объем не гарантирует направление цены. Перед инвестиционными решениями проводите собственный анализ.
                                 </p>
                             </div>
                             
                              <!-- Footer Text -->
                             <div style="text-align: center; margin: 40px 0 0 0;">
                                 <p style="margin: 0 0 10px 0; font-size: 14px; line-height: 1.5; color: #CCDADC !important;">
-                                    You're receiving this because you subscribed to Signalist news updates.
+                                    Вы получили это письмо, потому что подписались на уведомления Signalist.
                                 </p>
                                 <p style="margin: 0 0 10px 0; font-size: 14px; line-height: 1.5; color: #CCDADC !important;">
-                                    <a href="#" style="color: #CCDADC !important; text-decoration: underline;">Unsubscribe</a> | 
-                                    <a href="https://signalist.app" style="color: #CCDADC !important; text-decoration: underline;">Visit Signalist</a>
+                                    <a href="#" style="color: #CCDADC !important; text-decoration: underline;">Отписаться</a> | 
+                                    <a href="https://signalist.app" style="color: #CCDADC !important; text-decoration: underline;">Открыть Signalist</a>
                                 </p>
                                 <p style="margin: 0; font-size: 14px; line-height: 1.5; color: #CCDADC !important;">
                                     © 2025 Signalist
@@ -943,13 +943,13 @@ export const VOLUME_ALERT_EMAIL_TEMPLATE = `<!DOCTYPE html>
 </html>`;
 
 export const INACTIVE_USER_REMINDER_EMAIL_TEMPLATE = `<!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="format-detection" content="telephone=no">
     <meta name="x-apple-disable-message-reformatting">
-    <title>We Miss You! Your Market Insights Await</title>
+    <title>Мы скучаем! Ваши рыночные инсайты ждут</title>
     <!--[if mso]>
     <noscript>
         <xml>
@@ -1042,7 +1042,7 @@ export const INACTIVE_USER_REMINDER_EMAIL_TEMPLATE = `<!DOCTYPE html>
                     <!-- Header with Logo -->
                     <tr>
                         <td align="left" class="mobile-header-padding" style="padding: 40px 40px 20px 40px;">
-                            <img src="https://ik.imagekit.io/a6fkjou7d/logo.png?updatedAt=1756378431634" alt="Signalist Logo" width="150" style="max-width: 100%; height: auto;">
+                            <img src="https://ik.imagekit.io/a6fkjou7d/logo.png?updatedAt=1756378431634" alt="Логотип Signalist" width="150" style="max-width: 100%; height: auto;">
                         </td>
                     </tr>
                     
@@ -1052,27 +1052,27 @@ export const INACTIVE_USER_REMINDER_EMAIL_TEMPLATE = `<!DOCTYPE html>
                             
                             <!-- Welcome Back Heading -->
                             <h1 class="mobile-title dark-text" style="margin: 0 0 15px 0; font-size: 28px; font-weight: 600; background: linear-gradient(135deg, #FDD458 0%, #E8BA40 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; color: #FDD458; line-height: 1.2;">
-                                We Miss You, {{name}}!
+                                Мы скучаем, {{name}}!
                             </h1>
                             
                             <!-- Main Message -->
                             <p class="mobile-text dark-text-secondary" style="margin: 0 0 30px 0; font-size: 16px; line-height: 1.6; color: #CCDADC;">
-                                We noticed you haven't visited Signalist in a while. The markets have been moving, and there might be some opportunities you don't want to miss!
+                                Мы заметили, что вы давно не заходили в Signalist. Рынки активно движутся, и там могут быть возможности, которые не стоит пропускать.
                             </p>
 
                             <!-- Additional Motivation -->
                             <div class="dark-info-box" style="background-color: #050505; border: 1px solid #374151; border-radius: 8px; padding: 20px; margin-bottom: 30px;">
                                 <h3 style="margin: 0 0 8px 0; font-size: 18px; font-weight: 600; color: #E8BA40;">
-                                    Market Update
+                                    Обновление рынка
                                 </h3>
                                 <p class="mobile-text" style="margin: 0; font-size: 14px; line-height: 1.5; color: #ccdadc;">
-                                    Markets have been active lately! Major indices have seen significant movements, and there might be opportunities in your tracked stocks that you don't want to miss.
+                                    В последнее время рынки активны: основные индексы заметно двигались, а в отслеживаемых вами акциях могли появиться интересные сигналы.
                                 </p>
                             </div>
                             
                             <!-- Encouragement Message -->
                             <p class="mobile-text dark-text-secondary" style="margin: 0 0 40px 0; font-size: 16px; line-height: 1.6; color: #CCDADC;">
-                                Your watchlists are still active and ready to help you stay on top of your investments. Don't let market opportunities pass you by!
+                                Ваши списки наблюдения активны и готовы помочь держать инвестиции под контролем. Не пропускайте важные рыночные возможности.
                             </p>
                             
                             <!-- CTA Button -->
@@ -1080,7 +1080,7 @@ export const INACTIVE_USER_REMINDER_EMAIL_TEMPLATE = `<!DOCTYPE html>
                                 <tr>
                                     <td align="center" class="mobile-button">
                                         <a href="{{dashboardUrl}}" style="display: inline-block; background: #E8BA40; color: #000000; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-size: 16px; font-weight: 500; line-height: 1; text-align: center;  width: 100%;">
-                                            Return to Dashboard
+                                            Вернуться в панель
                                         </a>
                                     </td>
                                 </tr>
@@ -1089,11 +1089,11 @@ export const INACTIVE_USER_REMINDER_EMAIL_TEMPLATE = `<!DOCTYPE html>
                             <!-- Footer Text -->
                             <div style="text-align: center; margin: 40px 0 0 0;">
                                 <p style="margin: 0 0 10px 0; font-size: 14px; line-height: 1.5; color: #CCDADC !important;">
-                                    Questions? Reply to this email or contact our support team.
+                                    Есть вопросы? Ответьте на это письмо или свяжитесь с поддержкой.
                                 </p>
                                 <p style="margin: 0 0 10px 0; font-size: 14px; line-height: 1.5; color: #CCDADC !important;">
-                                    <a href="{{unsubscribeUrl}}" style="color: #CCDADC !important; text-decoration: underline;">Unsubscribe</a> | 
-                                    <a href="{{dashboardUrl}}" style="color: #CCDADC !important; text-decoration: underline;">Visit Signalist</a>
+                                    <a href="{{unsubscribeUrl}}" style="color: #CCDADC !important; text-decoration: underline;">Отписаться</a> | 
+                                    <a href="{{dashboardUrl}}" style="color: #CCDADC !important; text-decoration: underline;">Открыть Signalist</a>
                                 </p>
                                 <p style="margin: 0; font-size: 14px; line-height: 1.5; color: #CCDADC !important;">
                                     © 2025 Signalist

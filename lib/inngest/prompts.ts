@@ -1,12 +1,16 @@
-export const PERSONALIZED_WELCOME_EMAIL_PROMPT = `Generate highly personalized HTML content that will be inserted into an email template at the {{intro}} placeholder.
+export const PERSONALIZED_WELCOME_EMAIL_PROMPT = `Сгенерируй персонализированный HTML-контент на русском языке, который будет вставлен в email-шаблон в плейсхолдер {{intro}}.
 
 User profile data:
 {{userProfile}}
 
+LANGUAGE REQUIREMENT:
+- Весь пользовательский текст должен быть на русском языке.
+- Названия бренда Signalist, тикеры и названия компаний не переводи.
+
 PERSONALIZATION REQUIREMENTS:
 You MUST create content that is obviously tailored to THIS specific user by:
 
-IMPORTANT: Do NOT start the personalized content with "Welcome" since the email header already says "Welcome aboard {{name}}". Use alternative openings like "Thanks for joining", "Great to have you", "You're all set", "Perfect timing", etc.
+IMPORTANT: Do NOT start the personalized content with "Добро пожаловать", since the email header already says "Добро пожаловать, {{name}}". Use alternative openings like "Спасибо, что присоединились", "Рады видеть вас", "Все готово", "Отличный момент", etc.
 
 1. **Direct Reference to User Details**: Extract and use specific information from their profile:
    - Their exact investment goals or objectives
@@ -41,23 +45,27 @@ CRITICAL FORMATTING REQUIREMENTS:
 - Second sentence should add helpful context or reinforce the personalization
 
 Example personalized outputs (showing obvious customization with TWO sentences):
-<p class="mobile-text" style="margin: 0 0 30px 0; font-size: 16px; line-height: 1.6; color: #CCDADC;">Thanks for joining Signalist! As someone focused on <strong>technology growth stocks</strong>, you'll love our real-time alerts for companies like the ones you're tracking. We'll help you spot opportunities before they become mainstream news.</p>
+<p class="mobile-text" style="margin: 0 0 30px 0; font-size: 16px; line-height: 1.6; color: #CCDADC;">Спасибо, что присоединились к Signalist! Если вы ориентируетесь на <strong>технологические акции роста</strong>, вам пригодятся уведомления по компаниям, которые вы отслеживаете. Мы поможем замечать важные сигналы раньше, чем они превращаются в общий рыночный шум.</p>
 
-<p class="mobile-text" style="margin: 0 0 30px 0; font-size: 16px; line-height: 1.6; color: #CCDADC;">Great to have you aboard! Perfect for your <strong>conservative retirement strategy</strong> — we'll help you monitor dividend stocks without overwhelming you with noise. You can finally track your portfolio progress with confidence and clarity.</p>
+<p class="mobile-text" style="margin: 0 0 30px 0; font-size: 16px; line-height: 1.6; color: #CCDADC;">Рады видеть вас в Signalist! Для вашей <strong>консервативной стратегии</strong> мы поможем спокойно отслеживать дивидендные акции без лишнего информационного шума. Так вы сможете следить за портфелем увереннее и понятнее.</p>
 
-<p class="mobile-text" style="margin: 0 0 30px 0; font-size: 16px; line-height: 1.6; color: #CCDADC;">You're all set! Since you're new to investing, we've designed simple tools to help you build confidence while learning the <strong>healthcare sector</strong> you're interested in. Our beginner-friendly alerts will guide you without the confusing jargon.</p>`
+<p class="mobile-text" style="margin: 0 0 30px 0; font-size: 16px; line-height: 1.6; color: #CCDADC;">Все готово! Если вы только начинаете инвестировать, наши простые инструменты помогут увереннее изучать интересующий вас <strong>сектор здравоохранения</strong>. Уведомления будут объяснять важные события без сложного жаргона.</p>`
 
-export const NEWS_SUMMARY_EMAIL_PROMPT = `Generate HTML content for a market news summary email that will be inserted into the NEWS_SUMMARY_EMAIL_TEMPLATE at the {{newsContent}} placeholder.
+export const NEWS_SUMMARY_EMAIL_PROMPT = `Сгенерируй HTML-контент на русском языке для письма со сводкой рыночных новостей, который будет вставлен в NEWS_SUMMARY_EMAIL_TEMPLATE в плейсхолдер {{newsContent}}.
 
 News data to summarize:
 {{newsData}}
+
+LANGUAGE REQUIREMENT:
+- Весь пользовательский текст должен быть на русском языке.
+- Тикеры, названия компаний, URL и числовые значения оставляй без перевода.
 
 CRITICAL FORMATTING REQUIREMENTS:
 - Return ONLY clean HTML content with NO markdown, NO code blocks, NO backticks
 - Structure content with clear sections using proper HTML headings and paragraphs
 - Use these specific CSS classes and styles to match the email template:
 
-SECTION HEADINGS (for categories like "Market Highlights", "Top Movers", etc.):
+SECTION HEADINGS (for categories like "Главное на рынке", "Лидеры движения", etc.):
 <h3 class="mobile-news-title dark-text" style="margin: 30px 0 15px 0; font-size: 18px; font-weight: 600; color: #f8f9fa; line-height: 1.3;">Section Title</h3>
 
 PARAGRAPHS (for news content):
@@ -85,32 +93,32 @@ Wrap each article in a clean, simple container:
 
 ARTICLE TITLES:
 <h4 class="dark-text" style="margin: 0 0 16px 0; font-size: 18px; font-weight: 600; color: #FFFFFF; line-height: 1.4;">
-Article Title Here
+Заголовок статьи
 </h4>
 
 BULLET POINTS (minimum 3 concise insights):
 Use this format with clear, concise explanations (no label needed):
 <ul style="margin: 16px 0 20px 0; padding-left: 0; margin-left: 0; list-style: none;">
   <li class="dark-text-secondary" style="margin: 0 0 16px 0; padding: 0; margin-left: 0; font-size: 16px; line-height: 1.6; color: #CCDADC;">
-    <span style="color: #FDD458; font-weight: bold; font-size: 20px; margin-right: 8px;">•</span>Clear, concise explanation in simple terms that's easy to understand quickly.
+    <span style="color: #FDD458; font-weight: bold; font-size: 20px; margin-right: 8px;">•</span>Короткое и понятное объяснение простыми словами.
   </li>
   <li class="dark-text-secondary" style="margin: 0 0 16px 0; padding: 0; margin-left: 0; font-size: 16px; line-height: 1.6; color: #CCDADC;">
-    <span style="color: #FDD458; font-weight: bold; font-size: 20px; margin-right: 8px;">•</span>Brief explanation with key numbers and what they mean in everyday language.
+    <span style="color: #FDD458; font-weight: bold; font-size: 20px; margin-right: 8px;">•</span>Краткое объяснение с ключевыми цифрами и их смыслом.
   </li>
   <li class="dark-text-secondary" style="margin: 0 0 16px 0; padding: 0; margin-left: 0; font-size: 16px; line-height: 1.6; color: #CCDADC;">
-    <span style="color: #FDD458; font-weight: bold; font-size: 20px; margin-right: 8px;">•</span>Simple takeaway about what this means for regular people's money.
+    <span style="color: #FDD458; font-weight: bold; font-size: 20px; margin-right: 8px;">•</span>Практичный вывод о том, что это значит для частного инвестора.
   </li>
 </ul>
 
 INSIGHT SECTION:
 Add simple context explanation:
 <div style="background-color: #141414; border: 1px solid #374151; padding: 15px; border-radius: 6px; margin: 16px 0;">
-<p class="dark-text-secondary" style="margin: 0; font-size: 14px; color: #CCDADC; line-height: 1.4;">💡 <strong style="color: #FDD458;">Bottom Line:</strong> Simple explanation of why this news matters to your money in everyday language.</p>
+<p class="dark-text-secondary" style="margin: 0; font-size: 14px; color: #CCDADC; line-height: 1.4;">💡 <strong style="color: #FDD458;">Итог:</strong> Простое объяснение, почему эта новость важна для ваших денег.</p>
 </div>
 
 READ MORE BUTTON:
 <div style="margin: 20px 0 0 0;">
-<a href="ARTICLE_URL" style="color: #FDD458; text-decoration: none; font-weight: 500; font-size: 14px;" target="_blank" rel="noopener noreferrer">Read Full Story →</a>
+<a href="ARTICLE_URL" style="color: #FDD458; text-decoration: none; font-weight: 500; font-size: 14px;" target="_blank" rel="noopener noreferrer">Читать полностью →</a>
 </div>
 
 ARTICLE DIVIDER:
@@ -122,7 +130,7 @@ Between major sections, use:
 <div style="border-top: 1px solid #374151; margin: 32px 0 24px 0;"></div>
 
 Content guidelines:
-- Organize news into logical sections with icons (📊 Market Overview, 📈 Top Gainers, 📉 Top Losers, 🔥 Breaking News, 💼 Earnings Reports, 🏛️ Economic Data, etc.)
+- Organize news into logical sections with icons (📊 Обзор рынка, 📈 Лидеры роста, 📉 Лидеры падения, 🔥 Срочные новости, 💼 Отчеты компаний, 🏛️ Экономические данные, etc.)
 - NEVER repeat section headings - use each section type only once per email
 - For each news article, include its actual headline/title from the news data
 - Provide MINIMUM 3 CONCISE bullet points (NO "Key Takeaways" label - start directly with bullets)
@@ -130,21 +138,21 @@ Content guidelines:
 - Use PLAIN ENGLISH - avoid jargon, complex financial terms, or insider language
 - Explain concepts as if talking to someone new to investing
 - Include specific numbers but explain what they mean in simple terms
-- Add "Bottom Line" context in everyday language anyone can understand
+- Add "Итог" context in everyday language anyone can understand
 - Use clean, light design with yellow bullets for better readability
 - Make each article easy to scan with clear spacing and structure
-- Always include simple "Read Full Story" buttons with actual URLs
+- Always include simple "Читать полностью" buttons with actual URLs
 - Focus on PRACTICAL insights regular people can understand and use
 - Explain what the news means for regular investors' money
 - Keep language conversational and accessible to everyone
 - Prioritize BREVITY and CLARITY over detailed explanations
 
 Example structure:
-<h3 class="mobile-news-title dark-text" style="margin: 30px 0 15px 0; font-size: 20px; font-weight: 600; color: #f8f9fa; line-height: 1.3;">📊 Market Overview</h3>
+<h3 class="mobile-news-title dark-text" style="margin: 30px 0 15px 0; font-size: 20px; font-weight: 600; color: #f8f9fa; line-height: 1.3;">📊 Обзор рынка</h3>
 
 <div class="dark-info-box" style="background-color: #212328; padding: 24px; margin: 20px 0; border-radius: 8px;">
 <h4 class="dark-text" style="margin: 0 0 16px 0; font-size: 18px; font-weight: 600; color: #FDD458; line-height: 1.4;">
-Stock Market Had Mixed Results Today
+Рынок акций сегодня показал смешанную динамику
 </h4>
 
 <ul style="margin: 16px 0 20px 0; padding-left: 0; margin-left: 0; list-style: none;">
@@ -160,21 +168,21 @@ Stock Market Had Mixed Results Today
 </ul>
 
 <div style="background-color: #141414; border: 1px solid #374151; padding: 15px; border-radius: 6px; margin: 16px 0;">
-<p class="dark-text-secondary" style="margin: 0; font-size: 14px; color: #CCDADC; line-height: 1.4;">💡 <strong style="color: #FDD458;">Bottom Line:</strong> If you own tech stocks, today was good for you. If you're thinking about investing, tech companies might be a smart choice right now.</p>
+<p class="dark-text-secondary" style="margin: 0; font-size: 14px; color: #CCDADC; line-height: 1.4;">💡 <strong style="color: #FDD458;">Итог:</strong> Если у вас есть технологические акции, день был удачным. Если вы только присматриваетесь к рынку, технологический сектор может быть интересен для изучения.</p>
 </div>
 
 <div style="margin: 20px 0 0 0;">
-<a href="https://example.com/article1" style="color: #FDD458; text-decoration: none; font-weight: 500; font-size: 14px;" target="_blank" rel="noopener noreferrer">Read Full Story →</a>
+<a href="https://example.com/article1" style="color: #FDD458; text-decoration: none; font-weight: 500; font-size: 14px;" target="_blank" rel="noopener noreferrer">Читать полностью →</a>
 </div>
 </div>
 
 <div style="border-top: 1px solid #374151; margin: 32px 0 24px 0;"></div>
 
-<h3 class="mobile-news-title dark-text" style="margin: 30px 0 15px 0; font-size: 20px; font-weight: 600; color: #f8f9fa; line-height: 1.3;">📈 Top Gainers</h3>
+<h3 class="mobile-news-title dark-text" style="margin: 30px 0 15px 0; font-size: 20px; font-weight: 600; color: #f8f9fa; line-height: 1.3;">📈 Лидеры роста</h3>
 
 <div class="dark-info-box" style="background-color: #212328; padding: 24px; margin: 20px 0; border-radius: 8px;">
 <h4 class="dark-text" style="margin: 0 0 16px 0; font-size: 18px; font-weight: 600; color: #FDD458; line-height: 1.4;">
-Apple Stock Jumped After Great Earnings Report
+Акции Apple выросли после сильного отчета
 </h4>
 
 <ul style="margin: 16px 0 20px 0; padding-left: 0; margin-left: 0; list-style: none;">
@@ -190,11 +198,11 @@ Apple Stock Jumped After Great Earnings Report
 </ul>
 
 <div style="background-color: #141414; border: 1px solid #374151; padding: 15px; border-radius: 6px; margin: 16px 0;">
-<p class="dark-text-secondary" style="margin: 0; font-size: 14px; color: #CCDADC; line-height: 1.4;">💡 <strong style="color: #FDD458;">Bottom Line:</strong> Apple is making money in different ways (phones AND services), so it's a pretty safe stock to own even when the economy gets shaky.</p>
+<p class="dark-text-secondary" style="margin: 0; font-size: 14px; color: #CCDADC; line-height: 1.4;">💡 <strong style="color: #FDD458;">Итог:</strong> Apple зарабатывает на разных направлениях, включая устройства и сервисы, поэтому инвесторам стоит оценивать компанию не только по продажам iPhone.</p>
 </div>
 
 <div style="margin: 20px 0 0 0;">
-<a href="https://example.com/article2" style="color: #FDD458; text-decoration: none; font-weight: 500; font-size: 14px;" target="_blank" rel="noopener noreferrer">Read Full Story →</a>
+<a href="https://example.com/article2" style="color: #FDD458; text-decoration: none; font-weight: 500; font-size: 14px;" target="_blank" rel="noopener noreferrer">Читать полностью →</a>
 </div>
 </div>`
 

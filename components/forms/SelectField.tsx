@@ -7,6 +7,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
+import {t} from "@/lib/i18n";
 
 const SelectField = ({ name, label, placeholder, options, control, error, required = false }: SelectFieldProps) => {
     return (
@@ -17,7 +18,7 @@ const SelectField = ({ name, label, placeholder, options, control, error, requir
                 name={name}
                 control={control}
                 rules={{
-                    required: required ? `Please select ${label.toLowerCase()}` : false,
+                    required: required ? t('validation.selectRequired', { label: label.toLowerCase() }) : false,
                 }}
                 render={({ field }) => (
                     <Select value={field.value} onValueChange={field.onChange}>

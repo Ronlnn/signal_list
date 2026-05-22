@@ -1,46 +1,48 @@
+import { LOCALE, t } from '@/lib/i18n';
+
 export const NAV_ITEMS = [
-    { href: '/', label: 'Dashboard' },
-    { href: '/search', label: 'Search' },
-    // { href: '/watchlist', label: 'Watchlist' },
+    { href: '/', label: t('nav.dashboard') },
+    { href: '/search', label: t('nav.search') },
+    // { href: '/watchlist', label: t('nav.watchlist') },
 ];
 
 // Sign-up form select options
 export const INVESTMENT_GOALS = [
-    { value: 'Growth', label: 'Growth' },
-    { value: 'Income', label: 'Income' },
-    { value: 'Balanced', label: 'Balanced' },
-    { value: 'Conservative', label: 'Conservative' },
+    { value: 'Growth', label: t('options.goals.growth') },
+    { value: 'Income', label: t('options.goals.income') },
+    { value: 'Balanced', label: t('options.goals.balanced') },
+    { value: 'Conservative', label: t('options.goals.conservative') },
 ];
 
 export const RISK_TOLERANCE_OPTIONS = [
-    { value: 'Low', label: 'Low' },
-    { value: 'Medium', label: 'Medium' },
-    { value: 'High', label: 'High' },
+    { value: 'Low', label: t('options.risk.low') },
+    { value: 'Medium', label: t('options.risk.medium') },
+    { value: 'High', label: t('options.risk.high') },
 ];
 
 export const PREFERRED_INDUSTRIES = [
-    { value: 'Technology', label: 'Technology' },
-    { value: 'Healthcare', label: 'Healthcare' },
-    { value: 'Finance', label: 'Finance' },
-    { value: 'Energy', label: 'Energy' },
-    { value: 'Consumer Goods', label: 'Consumer Goods' },
+    { value: 'Technology', label: t('options.industries.technology') },
+    { value: 'Healthcare', label: t('options.industries.healthcare') },
+    { value: 'Finance', label: t('options.industries.finance') },
+    { value: 'Energy', label: t('options.industries.energy') },
+    { value: 'Consumer Goods', label: t('options.industries.consumerGoods') },
 ];
 
 export const ALERT_TYPE_OPTIONS = [
-    { value: 'upper', label: 'Upper' },
-    { value: 'lower', label: 'Lower' },
+    { value: 'upper', label: t('options.alertTypes.upper') },
+    { value: 'lower', label: t('options.alertTypes.lower') },
 ];
 
 export const CONDITION_OPTIONS = [
-    { value: 'greater', label: 'Greater than (>)' },
-    { value: 'less', label: 'Less than (<)' },
+    { value: 'greater', label: t('options.conditions.greater') },
+    { value: 'less', label: t('options.conditions.less') },
 ];
 
 // TradingView Charts
 export const MARKET_OVERVIEW_WIDGET_CONFIG = {
     colorTheme: 'dark', // dark mode
     dateRange: '12M', // last 12 months
-    locale: 'en', // language
+    locale: LOCALE, // language
     largeChartUrl: '', // link to a large chart if needed
     isTransparent: true, // makes background transparent
     showFloatingTooltip: true, // show tooltip on hover
@@ -55,7 +57,7 @@ export const MARKET_OVERVIEW_WIDGET_CONFIG = {
     symbolActiveColor: 'rgba(15, 237, 190, 0.05)', // highlight color for active symbol
     tabs: [
         {
-            title: 'Financial',
+            title: t('tradingView.financial'),
             symbols: [
                 { s: 'NYSE:JPM', d: 'JPMorgan Chase' },
                 { s: 'NYSE:WFC', d: 'Wells Fargo Co New' },
@@ -66,7 +68,7 @@ export const MARKET_OVERVIEW_WIDGET_CONFIG = {
             ],
         },
         {
-            title: 'Technology',
+            title: t('tradingView.technology'),
             symbols: [
                 { s: 'NASDAQ:AAPL', d: 'Apple' },
                 { s: 'NASDAQ:GOOGL', d: 'Alphabet' },
@@ -77,7 +79,7 @@ export const MARKET_OVERVIEW_WIDGET_CONFIG = {
             ],
         },
         {
-            title: 'Services',
+            title: t('tradingView.services'),
             symbols: [
                 { s: 'NASDAQ:AMZN', d: 'Amazon' },
                 { s: 'NYSE:BABA', d: 'Alibaba Group Hldg Ltd' },
@@ -101,7 +103,7 @@ export const HEATMAP_WIDGET_CONFIG = {
     blockColor: 'change',
     grouping: 'sector',
     isTransparent: true,
-    locale: 'en',
+    locale: LOCALE,
     symbolUrl: '',
     colorTheme: 'dark',
     exchanges: [],
@@ -119,24 +121,24 @@ export const TOP_STORIES_WIDGET_CONFIG = {
     feedMode: 'market',
     colorTheme: 'dark',
     isTransparent: true,
-    locale: 'en',
+    locale: LOCALE,
     market: 'stock',
     width: '100%',
     height: '600',
 };
 
 export const MARKET_DATA_WIDGET_CONFIG = {
-    title: 'Stocks',
+    title: t('tradingView.stocks'),
     width: '100%',
     height: 600,
-    locale: 'en',
+    locale: LOCALE,
     showSymbolLogo: true,
     colorTheme: 'dark',
     isTransparent: false,
     backgroundColor: '#0F0F0F',
     symbolsGroups: [
         {
-            name: 'Financial',
+            name: t('tradingView.financial'),
             symbols: [
                 { name: 'NYSE:JPM', displayName: 'JPMorgan Chase' },
                 { name: 'NYSE:WFC', displayName: 'Wells Fargo Co New' },
@@ -147,7 +149,7 @@ export const MARKET_DATA_WIDGET_CONFIG = {
             ],
         },
         {
-            name: 'Technology',
+            name: t('tradingView.technology'),
             symbols: [
                 { name: 'NASDAQ:AAPL', displayName: 'Apple' },
                 { name: 'NASDAQ:GOOGL', displayName: 'Alphabet' },
@@ -158,7 +160,7 @@ export const MARKET_DATA_WIDGET_CONFIG = {
             ],
         },
         {
-            name: 'Services',
+            name: t('tradingView.services'),
             symbols: [
                 { name: 'NASDAQ:AMZN', displayName: 'Amazon' },
                 { name: 'NYSE:BABA', displayName: 'Alibaba Group Hldg Ltd' },
@@ -174,7 +176,7 @@ export const SYMBOL_INFO_WIDGET_CONFIG = (symbol: string) => ({
     symbol: symbol.toUpperCase(),
     colorTheme: 'dark',
     isTransparent: true,
-    locale: 'en',
+    locale: LOCALE,
     width: '100%',
     height: 170,
 });
@@ -189,7 +191,7 @@ export const CANDLE_CHART_WIDGET_CONFIG = (symbol: string) => ({
     hide_volume: false,
     hotlist: false,
     interval: 'D',
-    locale: 'en',
+    locale: LOCALE,
     save_image: false,
     style: 1,
     symbol: symbol.toUpperCase(),
@@ -215,7 +217,7 @@ export const BASELINE_WIDGET_CONFIG = (symbol: string) => ({
     hide_volume: false,
     hotlist: false,
     interval: 'D',
-    locale: 'en',
+    locale: LOCALE,
     save_image: false,
     style: 10,
     symbol: symbol.toUpperCase(),
@@ -235,7 +237,7 @@ export const TECHNICAL_ANALYSIS_WIDGET_CONFIG = (symbol: string) => ({
     symbol: symbol.toUpperCase(),
     colorTheme: 'dark',
     isTransparent: 'true',
-    locale: 'en',
+    locale: LOCALE,
     width: '100%',
     height: 400,
     interval: '1h',
@@ -246,7 +248,7 @@ export const COMPANY_PROFILE_WIDGET_CONFIG = (symbol: string) => ({
     symbol: symbol.toUpperCase(),
     colorTheme: 'dark',
     isTransparent: 'true',
-    locale: 'en',
+    locale: LOCALE,
     width: '100%',
     height: 440,
 });
@@ -255,7 +257,7 @@ export const COMPANY_FINANCIALS_WIDGET_CONFIG = (symbol: string) => ({
     symbol: symbol.toUpperCase(),
     colorTheme: 'dark',
     isTransparent: 'true',
-    locale: 'en',
+    locale: LOCALE,
     width: '100%',
     height: 464,
     displayMode: 'regular',
@@ -325,15 +327,15 @@ export const POPULAR_STOCK_SYMBOLS = [
 ];
 
 export const NO_MARKET_NEWS =
-    '<p class="mobile-text" style="margin:0 0 20px 0;font-size:16px;line-height:1.6;color:#4b5563;">No market news available today. Please check back tomorrow.</p>';
+    `<p class="mobile-text" style="margin:0 0 20px 0;font-size:16px;line-height:1.6;color:#4b5563;">${t('email.noMarketNews')}</p>`;
 
 export const WATCHLIST_TABLE_HEADER = [
-    'Company',
-    'Symbol',
-    'Price',
-    'Change',
-    'Market Cap',
-    'P/E Ratio',
-    'Alert',
-    'Action',
+    'Компания',
+    'Тикер',
+    'Цена',
+    'Изменение',
+    'Капитализация',
+    'P/E',
+    'Уведомление',
+    'Действие',
 ];
