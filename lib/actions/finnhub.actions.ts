@@ -1,6 +1,13 @@
 'use server';
 
-import { getDateRange, validateArticle, formatArticle } from '@/lib/utils';
+import {
+  getDateRange,
+  validateArticle,
+  formatArticle,
+  formatChangePercent,
+  formatMarketCapValue,
+  formatPrice,
+} from '@/lib/utils';
 import { POPULAR_STOCK_SYMBOLS } from '@/lib/constants';
 import { cache } from 'react';
 
@@ -11,10 +18,30 @@ type FinnhubProfile = {
   name?: string;
   ticker?: string;
   exchange?: string;
+  marketCapitalization?: number;
 };
 
 type FinnhubSearchResultWithExchange = FinnhubSearchResult & {
   exchange?: string;
+};
+
+type FinnhubQuote = {
+  c?: number;
+  dp?: number;
+};
+
+type FinnhubMetric = {
+  metric?: {
+    peNormalizedAnnual?: number;
+    peTTM?: number;
+  };
+};
+
+type WatchlistSourceItem = {
+  userId: string;
+  symbol: string;
+  company: string;
+  addedAt: Date;
 };
 
 async function fetchJSON<T>(url: string, revalidateSeconds?: number): Promise<T> {
@@ -32,10 +59,92 @@ async function fetchJSON<T>(url: string, revalidateSeconds?: number): Promise<T>
 
 export { fetchJSON };
 
+function getFinnhubToken() {
+  return process.env.FINNHUB_API_KEY ?? NEXT_PUBLIC_FINNHUB_API_KEY;
+}
+
+export async function getStockProfile(symbol: string) {
+  const token = getFinnhubToken();
+  const normalizedSymbol = symbol.trim().toUpperCase();
+
+  if (!token || !normalizedSymbol) return null;
+
+  try {
+    const url = `${FINNHUB_BASE_URL}/stock/profile2?symbol=${encodeURIComponent(normalizedSymbol)}&token=${token}`;
+    return await fetchJSON<FinnhubProfile>(url, 3600);
+  } catch (err) {
+    console.error('Error fetching stock profile for', normalizedSymbol, err);
+    return null;
+  }
+}
+
+export async function getWatchlistStocksData(items: WatchlistSourceItem[]): Promise<StockWithData[]> {
+  const token = getFinnhubToken();
+  if (!token) return [];
+
+  const stocks = await Promise.all(
+    items.map(async (item) => {
+      const symbol = item.symbol.trim().toUpperCase();
+
+      try {
+        const [quote, profile, metrics] = await Promise.all([
+          fetchJSON<FinnhubQuote>(
+            `${FINNHUB_BASE_URL}/quote?symbol=${encodeURIComponent(symbol)}&token=${token}`,
+            120
+          ),
+          fetchJSON<FinnhubProfile>(
+            `${FINNHUB_BASE_URL}/stock/profile2?symbol=${encodeURIComponent(symbol)}&token=${token}`,
+            3600
+          ),
+          fetchJSON<FinnhubMetric>(
+            `${FINNHUB_BASE_URL}/stock/metric?symbol=${encodeURIComponent(symbol)}&metric=all&token=${token}`,
+            3600
+          ),
+        ]);
+
+        const currentPrice = quote.c;
+        const changePercent = quote.dp;
+        const marketCapUsd = profile.marketCapitalization
+          ? profile.marketCapitalization * 1_000_000
+          : undefined;
+        const peRatio = metrics.metric?.peNormalizedAnnual ?? metrics.metric?.peTTM;
+
+        return {
+          userId: item.userId,
+          symbol,
+          company: profile.name || item.company || symbol,
+          addedAt: item.addedAt,
+          currentPrice,
+          changePercent,
+          priceFormatted: typeof currentPrice === 'number' ? formatPrice(currentPrice) : 'Нет данных',
+          changeFormatted: typeof changePercent === 'number' ? formatChangePercent(changePercent) : 'Нет данных',
+          marketCap: typeof marketCapUsd === 'number' ? formatMarketCapValue(marketCapUsd) : 'Нет данных',
+          peRatio: typeof peRatio === 'number' ? peRatio.toFixed(2) : 'Нет данных',
+        };
+      } catch (err) {
+        console.error('Error fetching watchlist stock data for', symbol, err);
+
+        return {
+          userId: item.userId,
+          symbol,
+          company: item.company || symbol,
+          addedAt: item.addedAt,
+          priceFormatted: 'Нет данных',
+          changeFormatted: 'Нет данных',
+          marketCap: 'Нет данных',
+          peRatio: 'Нет данных',
+        };
+      }
+    })
+  );
+
+  return stocks;
+}
+
 export async function getNews(symbols?: string[]): Promise<MarketNewsArticle[]> {
   try {
     const range = getDateRange(5);
-    const token = process.env.FINNHUB_API_KEY ?? NEXT_PUBLIC_FINNHUB_API_KEY;
+    const token = getFinnhubToken();
     if (!token) {
       throw new Error('FINNHUB API key is not configured');
     }
@@ -110,7 +219,7 @@ export async function getNews(symbols?: string[]): Promise<MarketNewsArticle[]> 
 
 export const searchStocks = cache(async (query?: string): Promise<StockWithWatchlistStatus[]> => {
   try {
-    const token = process.env.FINNHUB_API_KEY ?? NEXT_PUBLIC_FINNHUB_API_KEY;
+    const token = getFinnhubToken();
     if (!token) {
       // If no token, log and return empty to avoid throwing per requirements
       console.error('Error in stock search:', new Error('FINNHUB API key is not configured'));

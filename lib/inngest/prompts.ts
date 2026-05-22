@@ -206,6 +206,27 @@ Example structure:
 </div>
 </div>`
 
+export const NEWS_SUMMARY_TELEGRAM_PROMPT = `Сгенерируй короткую Telegram-сводку рыночных новостей на русском языке.
+
+News data to summarize:
+{{newsData}}
+
+Требования:
+- Верни только текст сообщения, без markdown code fences и без пояснений.
+- Используй только HTML-разметку, поддерживаемую Telegram: <b>, <i>, <a>.
+- Общая длина сообщения должна быть меньше 3500 символов.
+- Тикеры, названия компаний, URL и числа оставляй без перевода.
+- Если новостей несколько, выбери максимум 4 самые важные.
+- Структура:
+  <b>Сводка Signalist за {{date}}</b>
+
+  <b>1. Заголовок новости</b>
+  Коротко: 1-2 предложения простым языком.
+  Итог: почему это важно инвестору.
+  <a href="ARTICLE_URL">Читать</a>
+
+Пиши живо, кратко и без инвестиционных рекомендаций вроде "покупать" или "продавать".`
+
 export const TRADINGVIEW_SYMBOL_MAPPING_PROMPT = `You are an expert in financial markets and trading platforms. Your task is to find the correct TradingView symbol that corresponds to a given Finnhub stock symbol.
 
 Stock information from Finnhub:

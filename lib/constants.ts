@@ -3,7 +3,7 @@ import { LOCALE, t } from '@/lib/i18n';
 export const NAV_ITEMS = [
     { href: '/', label: t('nav.dashboard') },
     { href: '/search', label: t('nav.search') },
-    // { href: '/watchlist', label: t('nav.watchlist') },
+    { href: '/watchlist', label: t('nav.watchlist') },
 ];
 
 // Sign-up form select options

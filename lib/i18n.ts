@@ -4,7 +4,7 @@ export const messages = {
   nav: {
     dashboard: 'Панель',
     search: 'Поиск',
-    watchlist: 'Список наблюдения',
+    watchlist: 'Мой список',
   },
   metadata: {
     title: 'Signalist',
@@ -63,6 +63,24 @@ export const messages = {
   watchlist: {
     add: 'Добавить в список',
     remove: 'Удалить из списка',
+    adding: 'Добавляем...',
+    removing: 'Удаляем...',
+    added: '{{symbol}} добавлена в список',
+    removed: '{{symbol}} удалена из списка',
+    actionFailed: 'Не удалось обновить список',
+    pageTitle: 'Мой список',
+    pageDescription: 'Компании, которые вы отслеживаете. Эти тикеры используются для персональной дневной сводки по почте.',
+    emptyTitle: 'Список пока пуст',
+    emptyDescription: 'Откройте поиск, выберите компанию и добавьте ее в список наблюдения.',
+    table: {
+      company: 'Компания',
+      symbol: 'Тикер',
+      price: 'Цена',
+      change: 'Изменение',
+      marketCap: 'Капитализация',
+      pe: 'P/E',
+      action: 'Действие',
+    },
     addTitle: 'Добавить {{symbol}} в список наблюдения',
     removeTitle: 'Удалить {{symbol}} из списка наблюдения',
   },
@@ -77,6 +95,19 @@ export const messages = {
   },
   userMenu: {
     logout: 'Выйти',
+  },
+  telegram: {
+    title: 'Telegram-уведомления',
+    connected: 'Telegram подключен{{username}}. Дневные сводки будут приходить в Telegram и на email.',
+    disconnected: 'Подключите Telegram, чтобы получать дневные сводки не только на email.',
+    connect: 'Подключить Telegram',
+    reconnect: 'Переподключить Telegram',
+    disconnect: 'Отключить',
+    connecting: 'Создаем ссылку...',
+    disconnecting: 'Отключаем...',
+    connectFailed: 'Не удалось создать ссылку Telegram',
+    disconnectFailed: 'Не удалось отключить Telegram',
+    disconnectedToast: 'Telegram отключен',
   },
   home: {
     marketOverview: 'Обзор рынка',
@@ -126,6 +157,7 @@ export const messages = {
   fallbacks: {
     welcomeIntro: 'Спасибо, что присоединились к Signalist. Теперь у вас есть инструменты, чтобы отслеживать рынок и принимать более взвешенные решения.',
     noMarketNews: 'Сегодня рыночных новостей нет.',
+    telegramNoMarketNews: '<b>Сводка Signalist</b>\n\nСегодня рыночных новостей нет.',
   },
 } as const;
 

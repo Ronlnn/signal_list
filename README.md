@@ -158,21 +158,110 @@ npx inngest-cli@latest dev
 
 Open [http://localhost:3000](http://localhost:3000) in your browser to view the project.
 
-## <a name="links">🔗 Assets</a>
+## Local Telegram + Inngest Guide
 
-Assets and snippets used in the project can be found in the **[video kit](https://jsm.dev/stocks-kit)**.
+For full local development with email summaries, Telegram summaries, and Inngest jobs, run these pieces together.
 
-<a href="https://jsm.dev/stocks-kit" target="_blank">
-  <img src="public/readme/videokit.webp" alt="Video Kit Banner">
-</a>
+**1. Start Nekoray**
 
-## <a name="more">🚀 More</a>
+Enable your Nekoray profile and make sure:
 
-**Advance your skills with Next.js Pro Course**
+- `Tun Mode` is enabled
+- local mixed proxy is available at `127.0.0.1:2080`
 
-Enjoyed creating this project? Dive deeper into our PRO courses for a richer learning adventure. They're packed with
-detailed explanations, cool features, and exercises to boost your skills. Give it a go!
+Your `.env` should include:
 
-<a href="https://jsm.dev/stocks-jsmpro" target="_blank">
-  <img src="public/readme/jsmpro.webp" alt="Project Banner">
-</a>
+```env
+TELEGRAM_PROXY_URL=http://127.0.0.1:2080
+```
+
+**2. Start Next.js**
+
+```bash
+npm run dev
+```
+
+App URL:
+
+```text
+http://localhost:3000
+```
+
+**3. Start Inngest Dev Server**
+
+```bash
+npx inngest-cli@latest dev
+```
+
+Inngest UI:
+
+```text
+http://localhost:8288
+```
+
+Use this UI to manually trigger jobs like `daily-news-summary`.
+
+**4. Start Cloudflare Tunnel**
+
+Telegram webhooks require a public HTTPS URL. Start a tunnel:
+
+```bash
+cloudflared tunnel --url http://localhost:3000
+```
+
+Copy the generated URL, for example:
+
+```text
+https://your-random-url.trycloudflare.com
+```
+
+**5. Set Telegram Webhook**
+
+Every time `cloudflared` gives you a new URL, update the Telegram webhook:
+
+```bash
+set -a
+source .env
+set +a
+
+curl -x http://127.0.0.1:2080 \
+  -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/setWebhook" \
+  -d "url=https://your-random-url.trycloudflare.com/api/telegram/webhook" \
+  -d "secret_token=$TELEGRAM_WEBHOOK_SECRET"
+```
+
+Check the active webhook:
+
+```bash
+curl -x http://127.0.0.1:2080 \
+  "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/getWebhookInfo"
+```
+
+The response should contain the current Cloudflare URL.
+
+**Normal Startup Order**
+
+```bash
+# 1. Enable Nekoray TUN
+
+# terminal 1
+npm run dev
+
+# terminal 2
+npx inngest-cli@latest dev
+
+# terminal 3
+cloudflared tunnel --url http://localhost:3000
+
+# terminal 4, after copying the Cloudflare URL
+set -a
+source .env
+set +a
+
+curl -x http://127.0.0.1:2080 \
+  -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/setWebhook" \
+  -d "url=https://PASTE-CLOUDFLARED-URL/api/telegram/webhook" \
+  -d "secret_token=$TELEGRAM_WEBHOOK_SECRET"
+```
+
+If only `npm run dev` is restarted, the webhook does not need to be updated. If `cloudflared` is restarted and the public URL changes, set the webhook again.

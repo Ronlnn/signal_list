@@ -3,6 +3,7 @@ import { callGemini } from "@/lib/ai/gemini";
 
 import {
   NEWS_SUMMARY_EMAIL_PROMPT,
+  NEWS_SUMMARY_TELEGRAM_PROMPT,
   PERSONALIZED_WELCOME_EMAIL_PROMPT,
 } from "@/lib/inngest/prompts";
 
@@ -12,6 +13,7 @@ import { getWatchlistSymbolsByEmail } from "@/lib/actions/watchlist.actions";
 import { getNews } from "@/lib/actions/finnhub.actions";
 import { getFormattedTodayDate } from "@/lib/utils";
 import {t} from "@/lib/i18n";
+import { sendTelegramMessage } from "@/lib/telegram";
 
 /* =========================
    1. WELCOME EMAIL
@@ -123,18 +125,30 @@ export const sendDailyNewsSummary = inngest.createFunction(
         try {
           console.log("🤖 summarizing for:", user.email);
 
+          const date = getFormattedTodayDate();
+          const serializedArticles = JSON.stringify(articles, null, 2);
           const prompt = NEWS_SUMMARY_EMAIL_PROMPT.replace(
             "{{newsData}}",
-            JSON.stringify(articles, null, 2)
+            serializedArticles
           );
 
           const newsContent = await callGemini(prompt);
+          let telegramContent: string | null = null;
+
+          if (user.telegramEnabled && user.telegramChatId) {
+            const telegramPrompt = NEWS_SUMMARY_TELEGRAM_PROMPT
+              .replace("{{newsData}}", serializedArticles)
+              .replace("{{date}}", date);
+
+            telegramContent = await callGemini(telegramPrompt);
+          }
 
           console.log("✅ AI result:", newsContent?.slice?.(0, 100));
 
           summaries.push({
             user,
             newsContent: newsContent || t('fallbacks.noMarketNews'),
+            telegramContent: telegramContent || t('fallbacks.telegramNoMarketNews'),
           });
 
           await new Promise((r) => setTimeout(r, 3000));
@@ -143,27 +157,42 @@ export const sendDailyNewsSummary = inngest.createFunction(
           summaries.push({
             user,
             newsContent: t('fallbacks.noMarketNews'),
+            telegramContent: t('fallbacks.telegramNoMarketNews'),
           });
         }
       }
 
-      // 4. send emails
-      console.log("📧 sending emails...");
+      // 4. send notifications
+      console.log("📧 sending notifications...");
 
       await Promise.all(
-        summaries.map(async ({ user, newsContent }) => {
+        summaries.map(async ({ user, newsContent, telegramContent }) => {
           try {
-            console.log("📨 sending to:", user.email);
+            if (user.emailEnabled !== false) {
+              console.log("📨 sending email to:", user.email);
 
-            await sendNewsSummaryEmail({
-              email: user.email,
-              date: getFormattedTodayDate(),
-              newsContent,
-            });
+              await sendNewsSummaryEmail({
+                email: user.email,
+                date: getFormattedTodayDate(),
+                newsContent,
+              });
 
-            console.log("✅ sent:", user.email);
+              console.log("✅ email sent:", user.email);
+            }
           } catch (e) {
             console.error("❌ email error:", user.email, e);
+          }
+
+          try {
+            if (user.telegramEnabled && user.telegramChatId) {
+              console.log("📨 sending telegram to:", user.email);
+
+              await sendTelegramMessage(user.telegramChatId, telegramContent);
+
+              console.log("✅ telegram sent:", user.email);
+            }
+          } catch (e) {
+            console.error("❌ telegram error:", user.email, e);
           }
         })
       );
