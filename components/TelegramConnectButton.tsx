@@ -21,6 +21,12 @@ const TelegramConnectButton = ({ isConnected }: TelegramConnectButtonProps) => {
       const result = await createTelegramLink();
 
       if (!result.success || !result.url) {
+        if (result.success && result.reconnected) {
+          toast.success(t('telegram.connected', { username: '' }));
+          router.refresh();
+          return;
+        }
+
         toast.error(result.error || t('telegram.connectFailed'));
         return;
       }

@@ -5,6 +5,7 @@ import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { connectToDatabase } from '@/database/mongoose';
 import { getAuth } from '@/lib/better-auth/auth';
+import { escapeTelegramHtml, sendTelegramMessage } from '@/lib/telegram';
 
 const LINK_TOKEN_TTL_MS = 15 * 60 * 1000;
 
@@ -71,6 +72,40 @@ export async function createTelegramLink() {
     const mongoose = await connectToDatabase();
     const db = mongoose.connection.db;
     if (!db) throw new Error('MongoDB connection not found');
+
+    const existingPreference = await db
+      .collection<TelegramPreference>('notification_preferences')
+      .findOne({ userId: user.id });
+
+    if (existingPreference?.telegramChatId) {
+      await db.collection('notification_preferences').updateOne(
+        { userId: user.id },
+        {
+          $set: {
+            email: user.email,
+            telegramEnabled: true,
+            emailEnabled: existingPreference.emailEnabled !== false,
+            updatedAt: new Date(),
+          },
+        }
+      );
+
+      try {
+        await sendTelegramMessage(
+          existingPreference.telegramChatId,
+          `Telegram снова подключен к аккаунту <b>${escapeTelegramHtml(user.email)}</b>.`
+        );
+      } catch (sendError) {
+        console.error('telegram reconnect notification error:', sendError);
+      }
+
+      revalidatePath('/watchlist');
+
+      return {
+        success: true,
+        reconnected: true,
+      };
+    }
 
     const token = crypto.randomBytes(24).toString('hex');
     const now = new Date();
