@@ -9,11 +9,96 @@ import {
 
 import { sendNewsSummaryEmail, sendWelcomeEmail } from "@/lib/nodemailer";
 import { getAllUsersForNewsEmail } from "@/lib/actions/user.actions";
-import { getWatchlistSymbolsByEmail } from "@/lib/actions/watchlist.actions";
-import { getNews } from "@/lib/actions/finnhub.actions";
+import { getWatchlistItemsByEmail } from "@/lib/actions/watchlist.actions";
+import { getNews, getWatchlistStocksData } from "@/lib/actions/finnhub.actions";
 import { getFormattedTodayDate } from "@/lib/utils";
 import {t} from "@/lib/i18n";
-import { sendTelegramMessage } from "@/lib/telegram";
+import { escapeTelegramHtml, sendTelegramMessage } from "@/lib/telegram";
+
+function escapeHtml(value: string) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function getNotificationTimestamp() {
+  return new Intl.DateTimeFormat("ru-RU", {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone: "Europe/Moscow",
+  }).format(new Date());
+}
+
+function serializeWatchlistData(stocks: StockWithData[]) {
+  return JSON.stringify(
+    stocks.map((stock) => ({
+      symbol: stock.symbol,
+      company: stock.company,
+      price: stock.priceFormatted || "Нет данных",
+      change: stock.changeFormatted || "Нет данных",
+      marketCap: stock.marketCap || "Нет данных",
+      peRatio: stock.peRatio || "Нет данных",
+    })),
+    null,
+    2
+  );
+}
+
+function buildWatchlistEmailBlock(stocks: StockWithData[], capturedAt: string) {
+  if (!stocks.length) return "";
+
+  const rows = stocks
+    .map((stock) => {
+      const isNegative = stock.changeFormatted?.trim().startsWith("-");
+      const changeColor = isNegative ? "#FCA5A5" : "#86EFAC";
+
+      return `
+<tr>
+  <td style="padding: 12px 10px; border-bottom: 1px solid #374151;">
+    <strong style="color: #FFFFFF;">${escapeHtml(stock.symbol)}</strong>
+    <div style="color: #9CA3AF; font-size: 13px; line-height: 1.4;">${escapeHtml(stock.company)}</div>
+  </td>
+  <td style="padding: 12px 10px; border-bottom: 1px solid #374151; color: #CCDADC; text-align: right;">${escapeHtml(stock.priceFormatted || "Нет данных")}</td>
+  <td style="padding: 12px 10px; border-bottom: 1px solid #374151; color: ${changeColor}; text-align: right;">${escapeHtml(stock.changeFormatted || "Нет данных")}</td>
+</tr>`;
+    })
+    .join("");
+
+  return `
+<h3 class="mobile-news-title dark-text" style="margin: 30px 0 15px 0; font-size: 18px; font-weight: 600; color: #f8f9fa; line-height: 1.3;">📌 Мой список: актуальные цены</h3>
+<p class="mobile-text dark-text-secondary" style="margin: 0 0 14px 0; font-size: 14px; line-height: 1.5; color: #9CA3AF;">Данные зафиксированы на момент отправки: ${escapeHtml(capturedAt)} МСК.</p>
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse: collapse; background-color: #212328; border-radius: 8px; overflow: hidden; margin: 0 0 24px 0;">
+  <thead>
+    <tr>
+      <th align="left" style="padding: 12px 10px; border-bottom: 1px solid #374151; color: #FDD458; font-size: 13px;">Компания</th>
+      <th align="right" style="padding: 12px 10px; border-bottom: 1px solid #374151; color: #FDD458; font-size: 13px;">Цена</th>
+      <th align="right" style="padding: 12px 10px; border-bottom: 1px solid #374151; color: #FDD458; font-size: 13px;">День</th>
+    </tr>
+  </thead>
+  <tbody>${rows}</tbody>
+</table>
+<div style="border-top: 1px solid #374151; margin: 28px 0 24px 0;"></div>`;
+}
+
+function buildWatchlistTelegramBlock(stocks: StockWithData[], capturedAt: string) {
+  if (!stocks.length) return "";
+
+  const rows = stocks
+    .map((stock) => {
+      const symbol = escapeTelegramHtml(stock.symbol);
+      const company = escapeTelegramHtml(stock.company);
+      const price = escapeTelegramHtml(stock.priceFormatted || "Нет данных");
+      const change = escapeTelegramHtml(stock.changeFormatted || "Нет данных");
+
+      return `<b>${symbol}</b> (${company}): ${price}, ${change}`;
+    })
+    .join("\n");
+
+  return `<b>Мой список: актуальные цены</b>\n${rows}\n<i>На момент отправки: ${escapeTelegramHtml(capturedAt)} МСК</i>\n\n`;
+}
 
 /* =========================
    1. WELCOME EMAIL
@@ -76,13 +161,24 @@ export const sendDailyNewsSummary = inngest.createFunction(
     { event: "app/send.daily.news" },
     { cron: "0 12 * * *" },
   ],
-  async () => {
+  async ({ event }) => {
     try {
       console.log("🔥 [daily-news-summary] START");
 
       // 1. users
       console.log("👥 fetching users...");
-      const users = await getAllUsersForNewsEmail();
+      let users = await getAllUsersForNewsEmail();
+      const targetUserId = event.data?.userId ? String(event.data.userId) : "";
+      const targetEmail = event.data?.email ? String(event.data.email) : "";
+
+      if (targetUserId || targetEmail) {
+        users = users.filter((user) => {
+          return (
+            (targetUserId && user.id === targetUserId) ||
+            (targetEmail && user.email === targetEmail)
+          );
+        });
+      }
 
       console.log("👥 users loaded:", users?.length);
 
@@ -98,11 +194,16 @@ export const sendDailyNewsSummary = inngest.createFunction(
         try {
           console.log("📰 processing user:", user.email);
 
-          const symbols = await getWatchlistSymbolsByEmail(user.email);
+          const watchlistItems = await getWatchlistItemsByEmail(user.email);
+          const symbols = watchlistItems.map((item) => item.symbol);
           console.log("📊 symbols:", symbols);
 
-          let articles = await getNews(symbols);
-          articles = (articles || []).slice(0, 6);
+          const [articlesResult, watchlistStocks] = await Promise.all([
+            getNews(symbols),
+            getWatchlistStocksData(watchlistItems),
+          ]);
+
+          let articles = (articlesResult || []).slice(0, 6);
 
           if (!articles.length) {
             console.log("⚠️ fallback to general news");
@@ -110,44 +211,55 @@ export const sendDailyNewsSummary = inngest.createFunction(
           }
 
           console.log("📰 articles:", articles.length);
+          console.log("💵 watchlist prices:", watchlistStocks.length);
 
-          results.push({ user, articles });
+          results.push({ user, articles, watchlistStocks });
         } catch (e) {
           console.error("❌ news fetch error:", user.email, e);
-          results.push({ user, articles: [] });
+          results.push({ user, articles: [], watchlistStocks: [] });
         }
       }
 
       // 3. summarize with Gemini
       const summaries = [];
 
-      for (const { user, articles } of results) {
+      for (const { user, articles, watchlistStocks } of results) {
         try {
           console.log("🤖 summarizing for:", user.email);
 
           const date = getFormattedTodayDate();
+          const capturedAt = getNotificationTimestamp();
           const serializedArticles = JSON.stringify(articles, null, 2);
-          const prompt = NEWS_SUMMARY_EMAIL_PROMPT.replace(
-            "{{newsData}}",
-            serializedArticles
-          );
+          const serializedWatchlist = serializeWatchlistData(watchlistStocks);
+          const emailWatchlistBlock = buildWatchlistEmailBlock(watchlistStocks, capturedAt);
+          const telegramWatchlistBlock = buildWatchlistTelegramBlock(watchlistStocks, capturedAt);
+          const prompt = NEWS_SUMMARY_EMAIL_PROMPT
+            .replace("{{newsData}}", serializedArticles)
+            .replace("{{watchlistData}}", serializedWatchlist);
 
-          const newsContent = await callGemini(prompt);
+          const generatedEmailContent = await callGemini(prompt);
+          const newsContent = generatedEmailContent
+            ? `${emailWatchlistBlock}${generatedEmailContent}`
+            : emailWatchlistBlock;
           let telegramContent: string | null = null;
 
           if (user.telegramEnabled && user.telegramChatId) {
             const telegramPrompt = NEWS_SUMMARY_TELEGRAM_PROMPT
               .replace("{{newsData}}", serializedArticles)
+              .replace("{{watchlistData}}", serializedWatchlist)
               .replace("{{date}}", date);
 
-            telegramContent = await callGemini(telegramPrompt);
+            const generatedTelegramContent = await callGemini(telegramPrompt);
+            telegramContent = generatedTelegramContent
+              ? `${telegramWatchlistBlock}${generatedTelegramContent}`
+              : telegramWatchlistBlock;
           }
 
           console.log("✅ AI result:", newsContent?.slice?.(0, 100));
 
           summaries.push({
             user,
-            newsContent: newsContent || t('fallbacks.noMarketNews'),
+            newsContent: newsContent || buildWatchlistEmailBlock(watchlistStocks, getNotificationTimestamp()) || t('fallbacks.noMarketNews'),
             telegramContent: telegramContent || t('fallbacks.telegramNoMarketNews'),
           });
 
@@ -156,8 +268,8 @@ export const sendDailyNewsSummary = inngest.createFunction(
           console.error("❌ AI error:", user.email, e);
           summaries.push({
             user,
-            newsContent: t('fallbacks.noMarketNews'),
-            telegramContent: t('fallbacks.telegramNoMarketNews'),
+            newsContent: buildWatchlistEmailBlock(watchlistStocks, getNotificationTimestamp()) || t('fallbacks.noMarketNews'),
+            telegramContent: buildWatchlistTelegramBlock(watchlistStocks, getNotificationTimestamp()) || t('fallbacks.telegramNoMarketNews'),
           });
         }
       }

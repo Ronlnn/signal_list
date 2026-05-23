@@ -109,6 +109,14 @@ export const messages = {
     disconnectFailed: 'Не удалось отключить Telegram',
     disconnectedToast: 'Telegram отключен',
   },
+  notifications: {
+    title: 'Ручная отправка сводки',
+    description: 'Запустите дневную сводку прямо сейчас. Signalist проанализирует ваш список, добавит актуальные цены и отправит уведомление на email и в Telegram, если он подключен.',
+    trigger: 'Отправить сводку сейчас',
+    triggering: 'Запускаем отправку...',
+    triggeredToast: 'Сводка поставлена в очередь отправки',
+    triggerFailed: 'Не удалось запустить отправку сводки',
+  },
   home: {
     marketOverview: 'Обзор рынка',
     stockHeatmap: 'Тепловая карта акций',

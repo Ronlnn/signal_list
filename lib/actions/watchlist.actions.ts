@@ -25,6 +25,11 @@ function normalizeSymbol(symbol: string) {
 }
 
 export async function getWatchlistSymbolsByEmail(email: string): Promise<string[]> {
+  const items = await getWatchlistItemsByEmail(email);
+  return items.map((item) => item.symbol);
+}
+
+export async function getWatchlistItemsByEmail(email: string): Promise<WatchlistLeanItem[]> {
   if (!email) return [];
 
   try {
@@ -40,10 +45,18 @@ export async function getWatchlistSymbolsByEmail(email: string): Promise<string[
     const userId = (user.id as string) || String(user._id || '');
     if (!userId) return [];
 
-    const items = await Watchlist.find({ userId }, { symbol: 1 }).lean();
-    return items.map((i) => String(i.symbol));
+    const items = await Watchlist.find({ userId })
+      .sort({ addedAt: -1 })
+      .lean<WatchlistLeanItem[]>();
+
+    return items.map((item) => ({
+      userId: item.userId,
+      symbol: item.symbol,
+      company: item.company,
+      addedAt: item.addedAt,
+    }));
   } catch (err) {
-    console.error('getWatchlistSymbolsByEmail error:', err);
+    console.error('getWatchlistItemsByEmail error:', err);
     return [];
   }
 }

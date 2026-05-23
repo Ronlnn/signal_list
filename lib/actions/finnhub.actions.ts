@@ -61,6 +61,50 @@ function getFinnhubToken() {
   return process.env.FINNHUB_API_KEY ?? NEXT_PUBLIC_FINNHUB_API_KEY;
 }
 
+async function getCompanyNewsForSymbols(
+  symbols: string[],
+  maxArticles: number,
+  range: ReturnType<typeof getDateRange>
+): Promise<MarketNewsArticle[]> {
+  const token = getFinnhubToken();
+  if (!token || !symbols.length) return [];
+
+  const perSymbolArticles: Record<string, RawNewsArticle[]> = {};
+
+  await Promise.all(
+    symbols.map(async (sym) => {
+      try {
+        const url = `${FINNHUB_BASE_URL}/company-news?symbol=${encodeURIComponent(sym)}&from=${range.from}&to=${range.to}&token=${token}`;
+        const articles = await fetchJSON<RawNewsArticle[]>(url, 300);
+        perSymbolArticles[sym] = (articles || []).filter(validateArticle);
+      } catch (e) {
+        console.error('Error fetching company news for', sym, e);
+        perSymbolArticles[sym] = [];
+      }
+    })
+  );
+
+  const collected: MarketNewsArticle[] = [];
+
+  for (let round = 0; round < maxArticles; round++) {
+    for (let i = 0; i < symbols.length; i++) {
+      const sym = symbols[i];
+      const list = perSymbolArticles[sym] || [];
+      if (list.length === 0) continue;
+
+      const article = list.shift();
+      if (!article || !validateArticle(article)) continue;
+
+      collected.push(formatArticle(article, true, sym, round));
+      if (collected.length >= maxArticles) break;
+    }
+
+    if (collected.length >= maxArticles) break;
+  }
+
+  return collected.sort((a, b) => (b.datetime || 0) - (a.datetime || 0));
+}
+
 export async function getStockProfile(symbol: string) {
   const token = getFinnhubToken();
   const normalizedSymbol = symbol.trim().toUpperCase();
@@ -87,8 +131,7 @@ export async function getWatchlistStocksData(items: WatchlistSourceItem[]): Prom
       try {
         const [quote, profile, metrics] = await Promise.all([
           fetchJSON<FinnhubQuote>(
-            `${FINNHUB_BASE_URL}/quote?symbol=${encodeURIComponent(symbol)}&token=${token}`,
-            120
+            `${FINNHUB_BASE_URL}/quote?symbol=${encodeURIComponent(symbol)}&token=${token}`
           ),
           fetchJSON<FinnhubProfile>(
             `${FINNHUB_BASE_URL}/stock/profile2?symbol=${encodeURIComponent(symbol)}&token=${token}`,
@@ -152,47 +195,36 @@ export async function getNews(symbols?: string[]): Promise<MarketNewsArticle[]> 
 
     const maxArticles = 6;
 
-    // If we have symbols, try to fetch company news per symbol and round-robin select
+    // Watchlist symbols have priority. If they do not fill the digest, add popular companies.
     if (cleanSymbols.length > 0) {
-      const perSymbolArticles: Record<string, RawNewsArticle[]> = {};
+      const watchlistArticles = await getCompanyNewsForSymbols(cleanSymbols, maxArticles, range);
+      const remainingSlots = maxArticles - watchlistArticles.length;
 
-      await Promise.all(
-        cleanSymbols.map(async (sym) => {
-          try {
-            const url = `${FINNHUB_BASE_URL}/company-news?symbol=${encodeURIComponent(sym)}&from=${range.from}&to=${range.to}&token=${token}`;
-            const articles = await fetchJSON<RawNewsArticle[]>(url, 300);
-            perSymbolArticles[sym] = (articles || []).filter(validateArticle);
-          } catch (e) {
-            console.error('Error fetching company news for', sym, e);
-            perSymbolArticles[sym] = [];
-          }
-        })
-      );
+      if (remainingSlots > 0) {
+        const popularSymbols = POPULAR_STOCK_SYMBOLS
+          .filter((symbol) => !cleanSymbols.includes(symbol))
+          .slice(0, 8);
 
-      const collected: MarketNewsArticle[] = [];
-      // Round-robin up to 6 picks
-      for (let round = 0; round < maxArticles; round++) {
-        for (let i = 0; i < cleanSymbols.length; i++) {
-          const sym = cleanSymbols[i];
-          const list = perSymbolArticles[sym] || [];
-          if (list.length === 0) continue;
-          const article = list.shift();
-          if (!article || !validateArticle(article)) continue;
-          collected.push(formatArticle(article, true, sym, round));
-          if (collected.length >= maxArticles) break;
-        }
-        if (collected.length >= maxArticles) break;
+        const popularArticles = await getCompanyNewsForSymbols(popularSymbols, remainingSlots, range);
+        const combined = [...watchlistArticles, ...popularArticles].slice(0, maxArticles);
+
+        if (combined.length > 0) return combined;
       }
 
-      if (collected.length > 0) {
-        // Sort by datetime desc
-        collected.sort((a, b) => (b.datetime || 0) - (a.datetime || 0));
-        return collected.slice(0, maxArticles);
-      }
-      // If none collected, fall through to general news
+      if (watchlistArticles.length > 0) return watchlistArticles.slice(0, maxArticles);
     }
 
-    // General market news fallback or when no symbols provided
+    if (cleanSymbols.length === 0) {
+      const popularArticles = await getCompanyNewsForSymbols(
+        POPULAR_STOCK_SYMBOLS.slice(0, 8),
+        maxArticles,
+        range
+      );
+
+      if (popularArticles.length > 0) return popularArticles.slice(0, maxArticles);
+    }
+
+    // General market news fallback
     const generalUrl = `${FINNHUB_BASE_URL}/news?category=general&token=${token}`;
     const general = await fetchJSON<RawNewsArticle[]>(generalUrl, 300);
 

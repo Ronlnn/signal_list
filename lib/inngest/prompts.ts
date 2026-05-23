@@ -56,6 +56,9 @@ export const NEWS_SUMMARY_EMAIL_PROMPT = `Сгенерируй HTML-контен
 News data to summarize:
 {{newsData}}
 
+Watchlist market data captured at notification send time:
+{{watchlistData}}
+
 LANGUAGE REQUIREMENT:
 - Весь пользовательский текст должен быть на русском языке.
 - Тикеры, названия компаний, URL и числовые значения оставляй без перевода.
@@ -130,6 +133,8 @@ Between major sections, use:
 <div style="border-top: 1px solid #374151; margin: 32px 0 24px 0;"></div>
 
 Content guidelines:
+- Если watchlistData не пустой, используй эти цены как актуальный контекст анализа. Не повторяй отдельную таблицу цен: она будет добавлена в письмо автоматически перед твоим текстом.
+- Новости по компаниям из watchlistData имеют высший приоритет. Популярные компании используй только после них, как общий рыночный контекст.
 - Organize news into logical sections with icons (📊 Обзор рынка, 📈 Лидеры роста, 📉 Лидеры падения, 🔥 Срочные новости, 💼 Отчеты компаний, 🏛️ Экономические данные, etc.)
 - NEVER repeat section headings - use each section type only once per email
 - For each news article, include its actual headline/title from the news data
@@ -211,12 +216,17 @@ export const NEWS_SUMMARY_TELEGRAM_PROMPT = `Сгенерируй коротку
 News data to summarize:
 {{newsData}}
 
+Watchlist market data captured at notification send time:
+{{watchlistData}}
+
 Требования:
 - Верни только текст сообщения, без markdown code fences и без пояснений.
 - Используй только HTML-разметку, поддерживаемую Telegram: <b>, <i>, <a>.
 - Общая длина сообщения должна быть меньше 3500 символов.
 - Тикеры, названия компаний, URL и числа оставляй без перевода.
 - Если новостей несколько, выбери максимум 4 самые важные.
+- Если watchlistData не пустой, используй эти цены как актуальный контекст анализа. Не повторяй отдельный блок цен: он будет добавлен в Telegram автоматически перед твоим текстом.
+- Новости по компаниям из watchlistData имеют высший приоритет; популярные компании добавляй только как дополнительный рыночный контекст.
 - Структура:
   <b>Сводка Signalist за {{date}}</b>
 

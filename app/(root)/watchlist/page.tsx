@@ -1,6 +1,7 @@
 import Link from "next/link";
 import SearchCommand from "@/components/SearchCommand";
 import TelegramConnectButton from "@/components/TelegramConnectButton";
+import NotificationTriggerButton from "@/components/NotificationTriggerButton";
 import WatchlistButton from "@/components/WatchlistButton";
 import { getCurrentUserWatchlistWithData } from "@/lib/actions/watchlist.actions";
 import { getCurrentTelegramPreference } from "@/lib/actions/telegram.actions";
@@ -37,10 +38,25 @@ export default async function WatchlistPage() {
     </div>
   );
 
+  const notificationPanel = (
+    <div className="rounded-lg border border-gray-600 bg-gray-800 p-5">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-gray-100">{t("notifications.title")}</h2>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-gray-500">
+            {t("notifications.description")}
+          </p>
+        </div>
+        <NotificationTriggerButton />
+      </div>
+    </div>
+  );
+
   if (!watchlist.length) {
     return (
       <section className="flex flex-col gap-6">
         {telegramPanel}
+        {notificationPanel}
         <div className="watchlist-empty-container flex">
           <div className="watchlist-empty">
             <div className="watchlist-icon">
@@ -68,6 +84,7 @@ export default async function WatchlistPage() {
       </div>
 
       {telegramPanel}
+      {notificationPanel}
 
       <div className="watchlist-table overflow-x-auto">
         <table className="w-full min-w-[860px] border-collapse">
