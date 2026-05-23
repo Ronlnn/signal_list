@@ -25,7 +25,7 @@ const TelegramConnectButton = ({ isConnected }: TelegramConnectButtonProps) => {
         return;
       }
 
-      window.location.href = result.url;
+      window.open(result.url, '_blank', 'noopener,noreferrer');
     });
   };
 

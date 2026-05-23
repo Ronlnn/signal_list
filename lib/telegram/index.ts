@@ -22,7 +22,7 @@ export function escapeTelegramHtml(value: string) {
 }
 
 function getProxyUrl() {
-  return process.env.TELEGRAM_PROXY_URL || process.env.HTTPS_PROXY || process.env.HTTP_PROXY || '';
+  return process.env.TELEGRAM_PROXY_URL || '';
 }
 
 function postTelegramJson(methodName: string, payload: Record<string, unknown>): Promise<TelegramRequestResult> {
