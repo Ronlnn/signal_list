@@ -1,5 +1,6 @@
 import TradingViewWidget from "@/components/TradingViewWidget";
 import WatchlistButton from "@/components/WatchlistButton";
+import AiChatPanel from "@/components/AiChatPanel";
 import {
   SYMBOL_INFO_WIDGET_CONFIG,
   CANDLE_CHART_WIDGET_CONFIG,
@@ -52,6 +53,8 @@ export default async function StockDetails({ params }: StockDetailsPageProps) {
           <div className="flex items-center justify-between">
             <WatchlistButton symbol={normalizedSymbol} company={company} isInWatchlist={isInWatchlist} />
           </div>
+
+          <AiChatPanel mode="stock" symbol={normalizedSymbol} company={company} />
 
           <TradingViewWidget
             scriptUrl={`${scriptUrl}technical-analysis.js`}

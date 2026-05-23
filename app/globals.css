@@ -322,6 +322,66 @@
   .watchlist-news {
     @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4;
   }
+  .ai-chat-panel {
+    @apply w-full rounded-lg border border-gray-600 bg-gray-800 p-5;
+  }
+  .ai-chat-header {
+    @apply flex items-start gap-3;
+  }
+  .ai-chat-icon {
+    @apply flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-yellow-500 text-gray-950;
+  }
+  .ai-chat-title {
+    @apply text-lg font-semibold text-gray-100;
+  }
+  .ai-chat-subtitle {
+    @apply mt-1 max-w-3xl text-sm leading-6 text-gray-500;
+  }
+  .ai-chat-quick {
+    @apply mt-4 flex flex-wrap gap-2;
+  }
+  .ai-chat-chip {
+    @apply min-h-9 max-w-full rounded border border-gray-600 bg-gray-700 px-3 py-2 text-left text-sm font-medium text-gray-400 transition-colors hover:border-yellow-500 hover:text-yellow-500 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .ai-chat-messages {
+    @apply mt-5 flex max-h-[420px] min-h-[220px] flex-col gap-4 overflow-y-auto rounded-lg border border-gray-600 bg-gray-900/60 p-4;
+  }
+  .ai-chat-empty {
+    @apply flex h-full min-h-[180px] flex-col items-center justify-center gap-3 text-center text-sm leading-6 text-gray-500;
+  }
+  .ai-chat-message {
+    @apply flex items-start gap-3;
+  }
+  .ai-chat-message-user {
+    @apply flex-row-reverse;
+  }
+  .ai-chat-message-assistant {
+    @apply flex-row;
+  }
+  .ai-chat-avatar {
+    @apply flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-gray-600 bg-gray-700 text-gray-400;
+  }
+  .ai-chat-message-user .ai-chat-avatar {
+    @apply border-yellow-500 bg-yellow-500 text-gray-950;
+  }
+  .ai-chat-bubble {
+    @apply max-w-[85%] whitespace-pre-wrap rounded-lg border border-gray-600 bg-gray-800 px-4 py-3 text-sm leading-6 text-gray-400;
+  }
+  .ai-chat-message-user .ai-chat-bubble {
+    @apply border-yellow-500/40 bg-yellow-500/10 text-gray-100;
+  }
+  .ai-chat-loading {
+    @apply flex items-center gap-2 text-gray-500;
+  }
+  .ai-chat-form {
+    @apply mt-4 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end;
+  }
+  .ai-chat-input {
+    @apply min-h-12 max-h-36 w-full resize-y rounded-lg border border-gray-600 bg-gray-900 px-3 py-3 text-sm leading-6 text-gray-100 placeholder:text-gray-500 focus:border-yellow-500 focus:outline-none;
+  }
+  .ai-chat-send {
+    @apply h-12 cursor-pointer gap-2 rounded-lg bg-yellow-500 px-4 text-sm font-semibold text-gray-950 hover:bg-yellow-400 disabled:cursor-not-allowed disabled:opacity-50;
+  }
   .news-item {
     @apply bg-gray-800 rounded-lg border w-full border-gray-600  p-4 duration-200 hover:border-gray-600 cursor-pointer;
   }
