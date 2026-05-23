@@ -2,7 +2,7 @@
 
 import { connectToDatabase } from '@/database/mongoose';
 import { Watchlist } from '@/database/models/watchlist.model';
-import { auth } from '@/lib/better-auth/auth';
+import { getAuth } from '@/lib/better-auth/auth';
 import { getWatchlistStocksData } from '@/lib/actions/finnhub.actions';
 import { revalidatePath } from 'next/cache';
 import { headers } from 'next/headers';
@@ -15,6 +15,7 @@ type WatchlistLeanItem = {
 };
 
 async function getCurrentUserId() {
+  const auth = await getAuth();
   const session = await auth.api.getSession({ headers: await headers() });
   return session?.user?.id || null;
 }

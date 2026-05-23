@@ -35,5 +35,3 @@ export const getAuth = async (): Promise<AuthInstance> => {
 
     return instance;
 }
-
-export const auth = await getAuth();

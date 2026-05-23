@@ -57,8 +57,6 @@ async function fetchJSON<T>(url: string, revalidateSeconds?: number): Promise<T>
   return (await res.json()) as T;
 }
 
-export { fetchJSON };
-
 function getFinnhubToken() {
   return process.env.FINNHUB_API_KEY ?? NEXT_PUBLIC_FINNHUB_API_KEY;
 }
@@ -217,7 +215,7 @@ export async function getNews(symbols?: string[]): Promise<MarketNewsArticle[]> 
   }
 }
 
-export const searchStocks = cache(async (query?: string): Promise<StockWithWatchlistStatus[]> => {
+const searchStocksCached = cache(async (query?: string): Promise<StockWithWatchlistStatus[]> => {
   try {
     const token = getFinnhubToken();
     if (!token) {
@@ -294,3 +292,7 @@ export const searchStocks = cache(async (query?: string): Promise<StockWithWatch
     return [];
   }
 });
+
+export async function searchStocks(query?: string): Promise<StockWithWatchlistStatus[]> {
+  return searchStocksCached(query);
+}

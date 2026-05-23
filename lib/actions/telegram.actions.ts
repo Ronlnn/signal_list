@@ -4,7 +4,7 @@ import crypto from 'crypto';
 import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { connectToDatabase } from '@/database/mongoose';
-import { auth } from '@/lib/better-auth/auth';
+import { getAuth } from '@/lib/better-auth/auth';
 
 const LINK_TOKEN_TTL_MS = 15 * 60 * 1000;
 
@@ -20,6 +20,7 @@ type TelegramPreference = {
 };
 
 async function getCurrentUser() {
+  const auth = await getAuth();
   const session = await auth.api.getSession({ headers: await headers() });
   return session?.user || null;
 }
