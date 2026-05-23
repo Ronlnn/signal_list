@@ -5,7 +5,7 @@ import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { connectToDatabase } from '@/database/mongoose';
 import { getAuth } from '@/lib/better-auth/auth';
-import { escapeTelegramHtml, sendTelegramMessage } from '@/lib/telegram';
+import { getTelegramWelcomeMessage, sendTelegramMessage } from '@/lib/telegram';
 
 const LINK_TOKEN_TTL_MS = 15 * 60 * 1000;
 
@@ -93,7 +93,7 @@ export async function createTelegramLink() {
       try {
         await sendTelegramMessage(
           existingPreference.telegramChatId,
-          `Telegram снова подключен к аккаунту <b>${escapeTelegramHtml(user.email)}</b>.`
+          getTelegramWelcomeMessage(user.email)
         );
       } catch (sendError) {
         console.error('telegram reconnect notification error:', sendError);

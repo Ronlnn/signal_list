@@ -84,20 +84,45 @@ function buildWatchlistEmailBlock(stocks: StockWithData[], capturedAt: string) {
 }
 
 function buildWatchlistTelegramBlock(stocks: StockWithData[], capturedAt: string) {
-  if (!stocks.length) return "";
+  const divider = "━━━━━━━━━━━━━━━━";
+
+  if (!stocks.length) {
+    return [
+      "<b>📊 Signalist</b>",
+      "<i>Персональная дневная сводка</i>",
+      divider,
+      "",
+    ].join("\n");
+  }
 
   const rows = stocks
     .map((stock) => {
+      const isNegative = stock.changeFormatted?.trim().startsWith("-");
+      const marker = isNegative ? "🔴" : "🟢";
       const symbol = escapeTelegramHtml(stock.symbol);
       const company = escapeTelegramHtml(stock.company);
       const price = escapeTelegramHtml(stock.priceFormatted || "Нет данных");
       const change = escapeTelegramHtml(stock.changeFormatted || "Нет данных");
 
-      return `<b>${symbol}</b> (${company}): ${price}, ${change}`;
+      return [
+        `${marker} <b>${symbol}</b> · ${price} · ${change}`,
+        `<i>${company}</i>`,
+      ].join("\n");
     })
-    .join("\n");
+    .join("\n\n");
 
-  return `<b>Мой список: актуальные цены</b>\n${rows}\n<i>На момент отправки: ${escapeTelegramHtml(capturedAt)} МСК</i>\n\n`;
+  return [
+    "<b>📊 Signalist</b>",
+    "<i>Персональная дневная сводка</i>",
+    divider,
+    "",
+    "<b>📌 Мой список</b>",
+    rows,
+    "",
+    `<i>Цены зафиксированы: ${escapeTelegramHtml(capturedAt)} МСК</i>`,
+    divider,
+    "",
+  ].join("\n");
 }
 
 /* =========================

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/database/mongoose';
-import { escapeTelegramHtml, sendTelegramMessage } from '@/lib/telegram';
+import { getTelegramWelcomeMessage, sendTelegramMessage } from '@/lib/telegram';
 
 export const dynamic = 'force-dynamic';
 
@@ -117,7 +117,7 @@ export async function POST(request: NextRequest) {
     try {
       await sendTelegramMessage(
         chatId,
-        `Telegram подключен к аккаунту <b>${escapeTelegramHtml(link.email)}</b>. Теперь дневные сводки Signalist будут приходить сюда.`
+        getTelegramWelcomeMessage(link.email)
       );
     } catch (sendError) {
       console.error('telegram webhook confirmation error:', sendError);
