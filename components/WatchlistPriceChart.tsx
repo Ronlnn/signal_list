@@ -496,7 +496,18 @@ const WatchlistPriceChart = () => {
       {data?.unavailableSymbols.length || data?.skippedSymbols.length ? (
         <div className="mt-4 rounded-lg border border-yellow-500/20 bg-yellow-500/10 p-3 text-sm leading-6 text-yellow-200">
           {data.unavailableSymbols.length ? (
-            <div>{t('priceChart.unavailable', { symbols: data.unavailableSymbols.join(', ') })}</div>
+            <div>
+              {t('priceChart.unavailable', { symbols: data.unavailableSymbols.join(', ') })}
+              {data.unavailableReasons ? (
+                <div className="mt-2 text-yellow-100/80">
+                  {data.unavailableSymbols.map((symbol) => (
+                    <div key={symbol}>
+                      {symbol}: {data.unavailableReasons[symbol] || t('priceChart.unknownUnavailableReason')}
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+            </div>
           ) : null}
           {data.skippedSymbols.length ? (
             <div>{t('priceChart.skipped', { symbols: data.skippedSymbols.join(', ') })}</div>

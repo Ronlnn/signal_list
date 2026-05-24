@@ -184,6 +184,7 @@ export const messages = {
     newsMarkers: 'Новости на графике',
     noNewsMarkers: 'За выбранный период значимых новостных маркеров не найдено.',
     unavailable: 'Нет исторических данных по тикерам: {{symbols}}.',
+    unknownUnavailableReason: 'причина неизвестна',
     skipped: 'Чтобы не перегружать график и API, не загружены дополнительные тикеры: {{symbols}}.',
   },
   home: {

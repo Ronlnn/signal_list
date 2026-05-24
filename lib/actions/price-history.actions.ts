@@ -97,6 +97,21 @@ function normalizeRange(value: PriceChartRange): PriceChartRange {
   return value in RANGE_CONFIG ? value : '1m';
 }
 
+function normalizeFinnhubSymbol(symbol: string) {
+  const cleaned = symbol.trim().toUpperCase();
+  if (cleaned.includes(':')) return cleaned.split(':').pop() || cleaned;
+  return cleaned;
+}
+
+function getCandleUnavailableReason(candles?: FinnhubCandleResponse) {
+  if (!candles) return 'Нет ответа от Finnhub';
+  if (candles.s === 'no_data') return 'Finnhub не вернул исторические свечи';
+  if (candles.s && candles.s !== 'ok') return `Статус Finnhub: ${candles.s}`;
+  if (!Array.isArray(candles.c) || !Array.isArray(candles.t)) return 'Некорректный формат свечей';
+  if (candles.c.length < 2 || candles.t.length < 2) return 'Недостаточно точек для графика';
+  return 'Не удалось построить серию';
+}
+
 function mapCandlesToSeries({
   item,
   candles,
@@ -144,7 +159,8 @@ function mapCandlesToSeries({
 
 async function getCandles(symbol: string, range: PriceChartRange, token: string) {
   const { from, to } = getUnixRange(range);
-  const url = `${FINNHUB_BASE_URL}/stock/candle?symbol=${encodeURIComponent(symbol)}&resolution=D&from=${from}&to=${to}&token=${token}`;
+  const normalizedSymbol = normalizeFinnhubSymbol(symbol);
+  const url = `${FINNHUB_BASE_URL}/stock/candle?symbol=${encodeURIComponent(normalizedSymbol)}&resolution=D&from=${from}&to=${to}&token=${token}`;
 
   return fetchJSON<FinnhubCandleResponse>(url);
 }
@@ -254,6 +270,7 @@ export async function getWatchlistPriceChartData(
       newsMarkers: [],
       aiInsight: 'Исторические данные недоступны: не задан ключ Finnhub.',
       unavailableSymbols: [],
+      unavailableReasons: {},
       skippedSymbols: [],
       error: 'FINNHUB API key is not configured',
     };
@@ -270,6 +287,7 @@ export async function getWatchlistPriceChartData(
         newsMarkers: [],
         aiInsight: 'Войдите в аккаунт, чтобы увидеть динамику компаний из списка.',
         unavailableSymbols: [],
+        unavailableReasons: {},
         skippedSymbols: [],
       };
     }
@@ -293,6 +311,7 @@ export async function getWatchlistPriceChartData(
         newsMarkers: [],
         aiInsight: 'Добавьте компании в список, чтобы увидеть динамику цен.',
         unavailableSymbols: [],
+        unavailableReasons: {},
         skippedSymbols,
       };
     }
@@ -305,17 +324,23 @@ export async function getWatchlistPriceChartData(
       }))
     );
     const unavailableSymbols: string[] = [];
+    const unavailableReasons: Record<string, string> = {};
     const series: PriceChartSeries[] = [];
 
     candlesResults.forEach((result, index) => {
       if (result.status === 'rejected') {
-        unavailableSymbols.push(itemsToFetch[index].symbol);
+        const symbol = itemsToFetch[index].symbol;
+        unavailableSymbols.push(symbol);
+        unavailableReasons[symbol] = result.reason instanceof Error
+          ? result.reason.message
+          : 'Ошибка загрузки candles';
         return;
       }
 
       const mapped = mapCandlesToSeries(result.value);
       if (!mapped) {
         unavailableSymbols.push(result.value.item.symbol);
+        unavailableReasons[result.value.item.symbol] = getCandleUnavailableReason(result.value.candles);
         return;
       }
 
@@ -348,6 +373,7 @@ export async function getWatchlistPriceChartData(
       newsMarkers,
       aiInsight,
       unavailableSymbols,
+      unavailableReasons,
       skippedSymbols,
     };
   } catch (err) {
@@ -361,6 +387,7 @@ export async function getWatchlistPriceChartData(
       newsMarkers: [],
       aiInsight: 'Не удалось загрузить исторические цены. Попробуйте позже.',
       unavailableSymbols: [],
+      unavailableReasons: {},
       skippedSymbols: [],
       error: 'Failed to load price history',
     };

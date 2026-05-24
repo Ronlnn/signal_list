@@ -187,6 +187,7 @@ declare global {
         newsMarkers: PriceChartNewsMarker[];
         aiInsight: string;
         unavailableSymbols: string[];
+        unavailableReasons: Record<string, string>;
         skippedSymbols: string[];
         error?: string;
     };
