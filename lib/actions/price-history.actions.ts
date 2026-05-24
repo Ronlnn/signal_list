@@ -8,6 +8,7 @@ import { callGemini } from '@/lib/ai/gemini';
 import { formatPrice } from '@/lib/utils';
 
 const FINNHUB_BASE_URL = 'https://finnhub.io/api/v1';
+const STOOQ_BASE_URL = 'https://stooq.com/q/d/l/';
 const NEXT_PUBLIC_FINNHUB_API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY ?? '';
 const MAX_SERIES_TO_FETCH = 12;
 const MAX_NEWS_MARKERS = 8;
@@ -49,6 +50,13 @@ type FinnhubCandleResponse = {
   s?: string;
 };
 
+class FinnhubAccessError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'FinnhubAccessError';
+  }
+}
+
 type FinnhubNewsArticle = {
   id?: number;
   headline?: string;
@@ -75,6 +83,9 @@ async function fetchJSON<T>(url: string, revalidateSeconds = 3600): Promise<T> {
 
   if (!res.ok) {
     const text = await res.text().catch(() => '');
+    if (res.status === 403 && text.includes("don't have access")) {
+      throw new FinnhubAccessError(text || 'Finnhub resource access denied');
+    }
     throw new Error(`Fetch failed ${res.status}: ${text}`);
   }
 
@@ -101,6 +112,19 @@ function normalizeFinnhubSymbol(symbol: string) {
   const cleaned = symbol.trim().toUpperCase();
   if (cleaned.includes(':')) return cleaned.split(':').pop() || cleaned;
   return cleaned;
+}
+
+function normalizeStooqSymbol(symbol: string) {
+  const normalized = normalizeFinnhubSymbol(symbol).toLowerCase();
+  if (normalized.includes('.')) return normalized;
+  return `${normalized}.us`;
+}
+
+function formatStooqDate(date: Date) {
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(date.getUTCDate()).padStart(2, '0');
+  return `${year}${month}${day}`;
 }
 
 function getCandleUnavailableReason(candles?: FinnhubCandleResponse) {
@@ -162,7 +186,61 @@ async function getCandles(symbol: string, range: PriceChartRange, token: string)
   const normalizedSymbol = normalizeFinnhubSymbol(symbol);
   const url = `${FINNHUB_BASE_URL}/stock/candle?symbol=${encodeURIComponent(normalizedSymbol)}&resolution=D&from=${from}&to=${to}&token=${token}`;
 
-  return fetchJSON<FinnhubCandleResponse>(url);
+  try {
+    return await fetchJSON<FinnhubCandleResponse>(url);
+  } catch (err) {
+    if (err instanceof FinnhubAccessError) {
+      return getStooqDailyCandles(symbol, range);
+    }
+
+    throw err;
+  }
+}
+
+async function getStooqDailyCandles(symbol: string, range: PriceChartRange): Promise<FinnhubCandleResponse> {
+  const { from, to } = getUnixRange(range);
+  const stooqSymbol = normalizeStooqSymbol(symbol);
+  const fromDate = formatStooqDate(new Date(from * 1000));
+  const toDate = formatStooqDate(new Date(to * 1000));
+  const url = `${STOOQ_BASE_URL}?s=${encodeURIComponent(stooqSymbol)}&d1=${fromDate}&d2=${toDate}&i=d`;
+  const res = await fetch(url, {
+    cache: 'force-cache',
+    next: { revalidate: 3600 },
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`Stooq fetch failed ${res.status}: ${text}`);
+  }
+
+  const csv = await res.text();
+  const lines = csv.trim().split(/\r?\n/);
+
+  if (lines.length < 2 || lines[0]?.toLowerCase().startsWith('no data')) {
+    return { s: 'no_data' };
+  }
+
+  const timestamps: number[] = [];
+  const closePrices: number[] = [];
+
+  for (const line of lines.slice(1)) {
+    const [date, , , , close] = line.split(',');
+    const closePrice = Number(close);
+    const timestamp = Math.floor(new Date(`${date}T00:00:00Z`).getTime() / 1000);
+
+    if (!date || !Number.isFinite(closePrice) || !Number.isFinite(timestamp)) continue;
+
+    timestamps.push(timestamp);
+    closePrices.push(closePrice);
+  }
+
+  if (closePrices.length < 2) return { s: 'no_data' };
+
+  return {
+    s: 'ok',
+    c: closePrices,
+    t: timestamps,
+  };
 }
 
 async function getNewsMarkers(
