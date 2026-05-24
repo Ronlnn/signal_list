@@ -37,6 +37,14 @@ const RANGE_CONFIG: Record<PriceChartRange, { days: number; label: string }> = {
   '1y': { days: 370, label: '1 год' },
 };
 
+const RANGE_POINT_LIMIT: Record<PriceChartRange, number> = {
+  '7d': 8,
+  '1m': 24,
+  '3m': 70,
+  '6m': 135,
+  '1y': 260,
+};
+
 type WatchlistLeanItem = {
   userId: string;
   symbol: string;
@@ -110,6 +118,13 @@ function normalizeStooqSymbol(symbol: string) {
   return `${normalized}.us`;
 }
 
+function getStooqSymbolCandidates(symbol: string) {
+  const normalized = normalizeFinnhubSymbol(symbol).toLowerCase();
+  const withUsSuffix = normalizeStooqSymbol(symbol);
+
+  return Array.from(new Set([withUsSuffix, normalized]));
+}
+
 function formatStooqDate(date: Date) {
   const year = date.getUTCFullYear();
   const month = String(date.getUTCMonth() + 1).padStart(2, '0');
@@ -118,9 +133,9 @@ function formatStooqDate(date: Date) {
 }
 
 function getCandleUnavailableReason(candles?: FinnhubCandleResponse) {
-  if (!candles) return 'Нет ответа от Finnhub';
-  if (candles.s === 'no_data') return 'Finnhub не вернул исторические свечи';
-  if (candles.s && candles.s !== 'ok') return `Статус Finnhub: ${candles.s}`;
+  if (!candles) return 'Нет ответа от источника исторических данных';
+  if (candles.s === 'no_data') return 'Stooq не вернул исторические цены для доступных вариантов тикера';
+  if (candles.s && candles.s !== 'ok') return `Статус источника исторических данных: ${candles.s}`;
   if (!Array.isArray(candles.c) || !Array.isArray(candles.t)) return 'Некорректный формат свечей';
   if (candles.c.length < 2 || candles.t.length < 2) return 'Недостаточно точек для графика';
   return 'Не удалось построить серию';
@@ -177,13 +192,47 @@ async function getCandles(symbol: string, range: PriceChartRange) {
 
 async function getStooqDailyCandles(symbol: string, range: PriceChartRange): Promise<FinnhubCandleResponse> {
   const { from, to } = getUnixRange(range);
-  const stooqSymbol = normalizeStooqSymbol(symbol);
+  const extendedFrom = to - 3 * 365 * 24 * 60 * 60;
+  const rangeAttempts = [
+    { from, to },
+    { from: extendedFrom, to },
+  ];
+  const symbolCandidates = getStooqSymbolCandidates(symbol);
+
+  for (const candidate of symbolCandidates) {
+    for (const attempt of rangeAttempts) {
+      const candles = await fetchStooqCandidate(candidate, attempt.from, attempt.to);
+      if (candles.s === 'ok') return trimCandlesToRange(candles, range);
+    }
+  }
+
+  return { s: 'no_data' };
+}
+
+function trimCandlesToRange(
+  candles: FinnhubCandleResponse,
+  range: PriceChartRange
+): FinnhubCandleResponse {
+  if (!Array.isArray(candles.c) || !Array.isArray(candles.t)) return candles;
+
+  const limit = RANGE_POINT_LIMIT[range];
+  return {
+    ...candles,
+    c: candles.c.slice(-limit),
+    t: candles.t.slice(-limit),
+  };
+}
+
+async function fetchStooqCandidate(
+  stooqSymbol: string,
+  from: number,
+  to: number
+): Promise<FinnhubCandleResponse> {
   const fromDate = formatStooqDate(new Date(from * 1000));
   const toDate = formatStooqDate(new Date(to * 1000));
   const url = `${STOOQ_BASE_URL}?s=${encodeURIComponent(stooqSymbol)}&d1=${fromDate}&d2=${toDate}&i=d`;
   const res = await fetch(url, {
-    cache: 'force-cache',
-    next: { revalidate: 3600 },
+    cache: 'no-store',
   });
 
   if (!res.ok) {
