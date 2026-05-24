@@ -23,32 +23,30 @@ export default async function WatchlistPage() {
     ? ` (@${telegramPreference.telegramUsername})`
     : "";
 
-  const telegramPanel = (
-    <div className="rounded-lg border border-gray-600 bg-gray-800 p-5">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <h2 className="text-lg font-semibold text-gray-100">{t("telegram.title")}</h2>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-gray-500">
-            {isTelegramConnected
-              ? t("telegram.connected", { username: telegramUsername })
-              : t("telegram.disconnected")}
-          </p>
+  const notificationControlsPanel = (
+    <div className="rounded-lg border border-gray-600 bg-gray-800">
+      <div className="grid gap-0 lg:grid-cols-2">
+        <div className="flex flex-col gap-4 p-5 lg:border-r lg:border-gray-600">
+          <div className="min-h-[92px]">
+            <h2 className="text-lg font-semibold text-gray-100">{t("telegram.title")}</h2>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-gray-500">
+              {isTelegramConnected
+                ? t("telegram.connected", { username: telegramUsername })
+                : t("telegram.disconnected")}
+            </p>
+          </div>
+          <TelegramConnectButton isConnected={isTelegramConnected} />
         </div>
-        <TelegramConnectButton isConnected={isTelegramConnected} />
-      </div>
-    </div>
-  );
 
-  const notificationPanel = (
-    <div className="rounded-lg border border-gray-600 bg-gray-800 p-5">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <h2 className="text-lg font-semibold text-gray-100">{t("notifications.title")}</h2>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-gray-500">
-            {t("notifications.description")}
-          </p>
+        <div className="flex flex-col gap-4 border-t border-gray-600 p-5 lg:border-t-0">
+          <div className="min-h-[92px]">
+            <h2 className="text-lg font-semibold text-gray-100">{t("notifications.title")}</h2>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-gray-500">
+              {t("notifications.description")}
+            </p>
+          </div>
+          <NotificationTriggerButton />
         </div>
-        <NotificationTriggerButton />
       </div>
     </div>
   );
@@ -56,9 +54,7 @@ export default async function WatchlistPage() {
   if (!watchlist.length) {
     return (
       <section className="flex flex-col gap-6">
-        {telegramPanel}
-        {notificationPanel}
-        <AiChatPanel mode="watchlist" />
+        {notificationControlsPanel}
         <div className="watchlist-empty-container flex">
           <div className="watchlist-empty">
             <div className="watchlist-icon">
@@ -69,6 +65,7 @@ export default async function WatchlistPage() {
             <SearchCommand initialStocks={initialStocks} label={t("search.addStock")} />
           </div>
         </div>
+        <AiChatPanel mode="watchlist" />
       </section>
     );
   }
@@ -85,9 +82,7 @@ export default async function WatchlistPage() {
         <SearchCommand initialStocks={initialStocks} label={t("search.addStock")} />
       </div>
 
-      {telegramPanel}
-      {notificationPanel}
-      <AiChatPanel mode="watchlist" />
+      {notificationControlsPanel}
 
       <div className="watchlist-table overflow-x-auto">
         <table className="w-full min-w-[860px] border-collapse">
@@ -118,7 +113,7 @@ export default async function WatchlistPage() {
                 <td className="table-cell px-4 py-4 text-gray-400">{stock.marketCap}</td>
                 <td className="table-cell px-4 py-4 text-gray-400">{stock.peRatio}</td>
                 <td className="table-cell px-4 py-4">
-                  <div className="w-44">
+                  <div className="w-32">
                     <WatchlistButton
                       symbol={stock.symbol}
                       company={stock.company}
@@ -132,6 +127,8 @@ export default async function WatchlistPage() {
           </tbody>
         </table>
       </div>
+
+      <AiChatPanel mode="watchlist" />
     </section>
   );
 }

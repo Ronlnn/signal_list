@@ -4,6 +4,7 @@ import { Watchlist } from '@/database/models/watchlist.model';
 import { getAuth } from '@/lib/better-auth/auth';
 import { callGemini } from '@/lib/ai/gemini';
 import { getNews, getStockProfile, getWatchlistStocksData } from '@/lib/actions/finnhub.actions';
+import { POPULAR_STOCK_SYMBOLS } from '@/lib/constants';
 
 export const dynamic = 'force-dynamic';
 
@@ -42,6 +43,7 @@ function buildPrompt({
   symbol,
   company,
   watchlistData,
+  candidateData,
   newsData,
   history,
 }: {
@@ -49,6 +51,7 @@ function buildPrompt({
   symbol?: string;
   company?: string;
   watchlistData: StockWithData[];
+  candidateData: StockWithData[];
   newsData: MarketNewsArticle[];
   history?: ChatMessage[];
 }) {
@@ -59,6 +62,9 @@ ${symbol ? `Пользователь смотрит компанию: ${symbol}$
 
 Компании из списка пользователя с актуальными данными:
 ${JSON.stringify(watchlistData, null, 2)}
+
+Дополнительные популярные компании, которые можно предложить только для изучения и сравнения:
+${JSON.stringify(candidateData, null, 2)}
 
 Свежие новости и рыночный контекст:
 ${JSON.stringify(newsData.slice(0, 6), null, 2)}
@@ -72,6 +78,10 @@ ${question}
 Правила ответа:
 - Не выдумывай данных, которых нет в контексте.
 - Если данных недостаточно, честно скажи, чего не хватает.
+- Если пользователь просит "что еще рассмотреть", "какие акции добавить", "альтернативы" или похожий вопрос, можно предложить 3-5 компаний из блока "Дополнительные популярные компании".
+- Такие варианты называй "идеи для изучения" или "кандидаты для наблюдения", а не инвестиционные рекомендации.
+- Для каждой предложенной компании кратко объясни, почему ее стоит сравнить с текущим списком, используя доступные цену, изменение, капитализацию, P/E или новости.
+- Не ограничивайся только watchlist, если вопрос явно просит новые компании.
 - Используй тикеры и названия компаний как есть.
 - Ответ структурируй короткими блоками.
 - Объясняй финансовые термины простыми словами.
@@ -114,9 +124,19 @@ export async function POST(request: NextRequest) {
         ...normalizedItems.map((item) => item.symbol),
       ])
     ).slice(0, 8);
+    const candidateItems = POPULAR_STOCK_SYMBOLS
+      .filter((candidateSymbol) => !contextSymbols.includes(candidateSymbol))
+      .slice(0, 8)
+      .map((candidateSymbol) => ({
+        userId: session.user.id,
+        symbol: candidateSymbol,
+        company: candidateSymbol,
+        addedAt: new Date(),
+      }));
 
-    const [watchlistData, stockProfile, newsData] = await Promise.all([
+    const [watchlistData, candidateData, stockProfile, newsData] = await Promise.all([
       getWatchlistStocksData(normalizedItems),
+      getWatchlistStocksData(candidateItems),
       symbol ? getStockProfile(symbol) : Promise.resolve(null),
       getNews(contextSymbols),
     ]);
@@ -126,6 +146,7 @@ export async function POST(request: NextRequest) {
       symbol,
       company: company || stockProfile?.name,
       watchlistData,
+      candidateData,
       newsData,
       history: body?.history,
     });

@@ -4,6 +4,7 @@ import {t} from "@/lib/i18n";
 import {addToWatchlist, removeFromWatchlist} from "@/lib/actions/watchlist.actions";
 import {toast} from "sonner";
 import {useRouter} from "next/navigation";
+import { Trash2 } from "lucide-react";
 
 const WatchlistButton = ({
   symbol,
@@ -77,16 +78,7 @@ const WatchlistButton = ({
   return (
     <button className={`watchlist-btn ${added ? "watchlist-remove" : ""}`} onClick={handleClick} disabled={isPending} type="button">
       {showTrashIcon && added ? (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth={1.5}
-          stroke="currentColor"
-          className="w-5 h-5 mr-2"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M6 7h12M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2m-7 4v6m4-6v6m4-6v6" />
-        </svg>
+        <Trash2 className="h-4 w-4 shrink-0" aria-hidden="true" />
       ) : null}
       <span>{label}</span>
     </button>

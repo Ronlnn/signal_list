@@ -62,7 +62,7 @@ export const messages = {
   },
   watchlist: {
     add: 'Добавить в список',
-    remove: 'Удалить из списка',
+    remove: 'Удалить',
     adding: 'Добавляем...',
     removing: 'Удаляем...',
     added: '{{symbol}} добавлена в список',
