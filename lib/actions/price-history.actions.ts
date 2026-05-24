@@ -11,9 +11,11 @@ const FINNHUB_BASE_URL = 'https://finnhub.io/api/v1';
 const ALPHA_VANTAGE_BASE_URL = 'https://www.alphavantage.co/query';
 const NEXT_PUBLIC_FINNHUB_API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY ?? '';
 const ALPHA_VANTAGE_API_KEY = process.env.ALPHA_VANTAGE_API_KEY ?? '';
-const MAX_SERIES_TO_FETCH = 12;
+const MAX_SERIES_TO_FETCH = 6;
 const MAX_NEWS_MARKERS = 8;
 const BENCHMARK_SYMBOL = 'SPY';
+const ALPHA_VANTAGE_CACHE_TTL_MS = 12 * 60 * 60 * 1000;
+const ALPHA_VANTAGE_REQUEST_DELAY_MS = 1300;
 
 const SERIES_COLORS = [
   '#FDD458',
@@ -77,6 +79,14 @@ type AlphaVantageDailyResponse = {
   Note?: string;
 };
 
+type PriceHistoryCacheDocument = {
+  source: 'alpha_vantage';
+  symbol: string;
+  candles: CandleResponse;
+  fetchedAt: Date;
+  updatedAt: Date;
+};
+
 type FinnhubNewsArticle = {
   id?: number;
   headline?: string;
@@ -107,6 +117,21 @@ async function fetchJSON<T>(url: string, revalidateSeconds = 3600): Promise<T> {
   }
 
   return (await res.json()) as T;
+}
+
+async function fetchNoStoreJSON<T>(url: string): Promise<T> {
+  const res = await fetch(url, { cache: 'no-store' });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`Fetch failed ${res.status}: ${text}`);
+  }
+
+  return (await res.json()) as T;
+}
+
+function delay(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function getUnixRange(range: PriceChartRange) {
@@ -206,8 +231,11 @@ async function getAlphaVantageDailyCandles(
   }
 
   const normalizedSymbol = normalizeAlphaVantageSymbol(symbol);
+  const cachedCandles = await getCachedAlphaVantageCandles(normalizedSymbol);
+  if (cachedCandles?.s === 'ok') return trimCandlesToRange(cachedCandles, range);
+
   const url = `${ALPHA_VANTAGE_BASE_URL}?function=TIME_SERIES_DAILY&symbol=${encodeURIComponent(normalizedSymbol)}&outputsize=compact&apikey=${encodeURIComponent(ALPHA_VANTAGE_API_KEY)}`;
-  const data = await fetchJSON<AlphaVantageDailyResponse>(url, 3600);
+  const data = await fetchNoStoreJSON<AlphaVantageDailyResponse>(url);
 
   if (data['Error Message']) {
     return {
@@ -225,7 +253,6 @@ async function getAlphaVantageDailyCandles(
 
   const timeSeries = data['Time Series (Daily)'];
   if (!timeSeries || !Object.keys(timeSeries).length) return { s: 'no_data' };
-  const limit = RANGE_POINT_LIMIT[range];
   const rows = Object.entries(timeSeries)
     .map(([date, values]) => {
       const closePrice = Number(values['4. close']);
@@ -234,16 +261,81 @@ async function getAlphaVantageDailyCandles(
       return { closePrice, timestamp };
     })
     .filter((row) => Number.isFinite(row.closePrice) && row.closePrice > 0 && row.timestamp > 0)
-    .sort((a, b) => a.timestamp - b.timestamp)
-    .slice(-limit);
+    .sort((a, b) => a.timestamp - b.timestamp);
 
   if (rows.length < 2) return { s: 'no_data' };
 
-  return {
+  const candles = {
     s: 'ok',
     c: rows.map((row) => row.closePrice),
     t: rows.map((row) => row.timestamp),
+  } satisfies CandleResponse;
+
+  await saveAlphaVantageCandles(normalizedSymbol, candles);
+
+  return trimCandlesToRange(candles, range);
+}
+
+function trimCandlesToRange(
+  candles: CandleResponse,
+  range: PriceChartRange
+): CandleResponse {
+  if (!Array.isArray(candles.c) || !Array.isArray(candles.t)) return candles;
+
+  const limit = RANGE_POINT_LIMIT[range];
+  return {
+    ...candles,
+    c: candles.c.slice(-limit),
+    t: candles.t.slice(-limit),
   };
+}
+
+async function getCachedAlphaVantageCandles(symbol: string) {
+  try {
+    const mongoose = await connectToDatabase();
+    const db = mongoose.connection.db;
+    if (!db) return null;
+
+    const cached = await db.collection<PriceHistoryCacheDocument>('price_history_cache')
+      .findOne({ source: 'alpha_vantage', symbol });
+
+    if (!cached?.candles || !cached.fetchedAt) return null;
+
+    const ageMs = Date.now() - new Date(cached.fetchedAt).getTime();
+    if (ageMs > ALPHA_VANTAGE_CACHE_TTL_MS) return null;
+
+    return cached.candles;
+  } catch (err) {
+    console.error('getCachedAlphaVantageCandles error:', err);
+    return null;
+  }
+}
+
+async function saveAlphaVantageCandles(symbol: string, candles: CandleResponse) {
+  if (candles.s !== 'ok') return;
+
+  try {
+    const mongoose = await connectToDatabase();
+    const db = mongoose.connection.db;
+    if (!db) return;
+
+    const now = new Date();
+    await db.collection<PriceHistoryCacheDocument>('price_history_cache').updateOne(
+      { source: 'alpha_vantage', symbol },
+      {
+        $set: {
+          source: 'alpha_vantage',
+          symbol,
+          candles,
+          fetchedAt: now,
+          updatedAt: now,
+        },
+      },
+      { upsert: true }
+    );
+  } catch (err) {
+    console.error('saveAlphaVantageCandles error:', err);
+  }
 }
 
 async function getNewsMarkers(
@@ -386,54 +478,59 @@ export async function getWatchlistPriceChartData(
       };
     }
 
-    const candlesResults = await Promise.allSettled(
-      itemsToFetch.map(async (item, index) => ({
-        item,
-        candles: await getCandles(item.symbol, range),
-        color: SERIES_COLORS[index % SERIES_COLORS.length],
-      }))
-    );
     const unavailableSymbols: string[] = [];
     const unavailableReasons: Record<string, string> = {};
     const attemptedSymbols: Record<string, string[]> = {};
     const series: PriceChartSeries[] = [];
 
-    candlesResults.forEach((result, index) => {
-      if (result.status === 'rejected') {
-        const symbol = itemsToFetch[index].symbol;
+    for (let index = 0; index < itemsToFetch.length; index++) {
+      const item = itemsToFetch[index];
+
+      try {
+        const candles = await getCandles(item.symbol, range);
+        const mapped = mapCandlesToSeries({
+          item,
+          candles,
+          color: SERIES_COLORS[index % SERIES_COLORS.length],
+        });
+
+        if (!mapped) {
+          unavailableSymbols.push(item.symbol);
+          attemptedSymbols[item.symbol] = [normalizeAlphaVantageSymbol(item.symbol)];
+          unavailableReasons[item.symbol] = getCandleUnavailableReason(candles);
+        } else {
+          series.push(mapped);
+        }
+      } catch (err) {
+        const symbol = item.symbol;
         unavailableSymbols.push(symbol);
         attemptedSymbols[symbol] = [normalizeAlphaVantageSymbol(symbol)];
-        unavailableReasons[symbol] = result.reason instanceof Error
-          ? result.reason.message
+        unavailableReasons[symbol] = err instanceof Error
+          ? err.message
           : 'Ошибка загрузки candles';
-        return;
       }
 
-      const mapped = mapCandlesToSeries(result.value);
-      if (!mapped) {
-        unavailableSymbols.push(result.value.item.symbol);
-        attemptedSymbols[result.value.item.symbol] = [normalizeAlphaVantageSymbol(result.value.item.symbol)];
-        unavailableReasons[result.value.item.symbol] = getCandleUnavailableReason(result.value.candles);
-        return;
+      if (index < itemsToFetch.length - 1) {
+        await delay(ALPHA_VANTAGE_REQUEST_DELAY_MS);
       }
+    }
 
-      series.push(mapped);
-    });
+    await delay(ALPHA_VANTAGE_REQUEST_DELAY_MS);
+    const benchmarkResult = await getCandles(BENCHMARK_SYMBOL, range)
+      .then((candles) =>
+        mapCandlesToSeries({
+          item: { symbol: BENCHMARK_SYMBOL, company: 'S&P 500 ETF' },
+          candles,
+          color: '#94A3B8',
+          isBenchmark: true,
+        })
+      )
+      .catch((err) => {
+        console.error('benchmark candles error:', err);
+        return null;
+      });
 
-    const [benchmarkResult, newsMarkers, aiInsight] = await Promise.all([
-      getCandles(BENCHMARK_SYMBOL, range)
-        .then((candles) =>
-          mapCandlesToSeries({
-            item: { symbol: BENCHMARK_SYMBOL, company: 'S&P 500 ETF' },
-            candles,
-            color: '#94A3B8',
-            isBenchmark: true,
-          })
-        )
-        .catch((err) => {
-          console.error('benchmark candles error:', err);
-          return null;
-        }),
+    const [newsMarkers, aiInsight] = await Promise.all([
       getNewsMarkers(itemsToFetch, range, token),
       buildAiInsight(series, range),
     ]);
