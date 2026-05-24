@@ -503,6 +503,12 @@ const WatchlistPriceChart = () => {
                   {data.unavailableSymbols.map((symbol) => (
                     <div key={symbol}>
                       {symbol}: {data.unavailableReasons[symbol] || t('priceChart.unknownUnavailableReason')}
+                      {data.attemptedSymbols?.[symbol]?.length ? (
+                        <span className="text-yellow-100/60">
+                          {' '}
+                          {t('priceChart.attemptedSymbols', { symbols: data.attemptedSymbols[symbol].join(', ') })}
+                        </span>
+                      ) : null}
                     </div>
                   ))}
                 </div>

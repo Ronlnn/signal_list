@@ -121,8 +121,9 @@ function normalizeStooqSymbol(symbol: string) {
 function getStooqSymbolCandidates(symbol: string) {
   const normalized = normalizeFinnhubSymbol(symbol).toLowerCase();
   const withUsSuffix = normalizeStooqSymbol(symbol);
+  const withPlSuffix = normalized.includes('.') ? normalized : `${normalized}.pl`;
 
-  return Array.from(new Set([withUsSuffix, normalized]));
+  return Array.from(new Set([withUsSuffix, withPlSuffix, normalized]));
 }
 
 function formatStooqDate(date: Date) {
@@ -377,10 +378,11 @@ export async function getWatchlistPriceChartData(
         series: [],
         benchmark: null,
         newsMarkers: [],
-        aiInsight: 'Войдите в аккаунт, чтобы увидеть динамику компаний из списка.',
-        unavailableSymbols: [],
-        unavailableReasons: {},
-        skippedSymbols: [],
+      aiInsight: 'Войдите в аккаунт, чтобы увидеть динамику компаний из списка.',
+      unavailableSymbols: [],
+      unavailableReasons: {},
+      attemptedSymbols: {},
+      skippedSymbols: [],
       };
     }
 
@@ -404,6 +406,7 @@ export async function getWatchlistPriceChartData(
         aiInsight: 'Добавьте компании в список, чтобы увидеть динамику цен.',
         unavailableSymbols: [],
         unavailableReasons: {},
+        attemptedSymbols: {},
         skippedSymbols,
       };
     }
@@ -417,12 +420,14 @@ export async function getWatchlistPriceChartData(
     );
     const unavailableSymbols: string[] = [];
     const unavailableReasons: Record<string, string> = {};
+    const attemptedSymbols: Record<string, string[]> = {};
     const series: PriceChartSeries[] = [];
 
     candlesResults.forEach((result, index) => {
       if (result.status === 'rejected') {
         const symbol = itemsToFetch[index].symbol;
         unavailableSymbols.push(symbol);
+        attemptedSymbols[symbol] = getStooqSymbolCandidates(symbol);
         unavailableReasons[symbol] = result.reason instanceof Error
           ? result.reason.message
           : 'Ошибка загрузки candles';
@@ -432,6 +437,7 @@ export async function getWatchlistPriceChartData(
       const mapped = mapCandlesToSeries(result.value);
       if (!mapped) {
         unavailableSymbols.push(result.value.item.symbol);
+        attemptedSymbols[result.value.item.symbol] = getStooqSymbolCandidates(result.value.item.symbol);
         unavailableReasons[result.value.item.symbol] = getCandleUnavailableReason(result.value.candles);
         return;
       }
@@ -466,6 +472,7 @@ export async function getWatchlistPriceChartData(
       aiInsight,
       unavailableSymbols,
       unavailableReasons,
+      attemptedSymbols,
       skippedSymbols,
     };
   } catch (err) {
@@ -480,6 +487,7 @@ export async function getWatchlistPriceChartData(
       aiInsight: 'Не удалось загрузить исторические цены. Попробуйте позже.',
       unavailableSymbols: [],
       unavailableReasons: {},
+      attemptedSymbols: {},
       skippedSymbols: [],
       error: 'Failed to load price history',
     };

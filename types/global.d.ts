@@ -188,6 +188,7 @@ declare global {
         aiInsight: string;
         unavailableSymbols: string[];
         unavailableReasons: Record<string, string>;
+        attemptedSymbols: Record<string, string[]>;
         skippedSymbols: string[];
         error?: string;
     };
