@@ -8,8 +8,9 @@ import { callGemini } from '@/lib/ai/gemini';
 import { formatPrice } from '@/lib/utils';
 
 const FINNHUB_BASE_URL = 'https://finnhub.io/api/v1';
-const STOOQ_BASE_URL = 'https://stooq.com/q/d/l/';
+const ALPHA_VANTAGE_BASE_URL = 'https://www.alphavantage.co/query';
 const NEXT_PUBLIC_FINNHUB_API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY ?? '';
+const ALPHA_VANTAGE_API_KEY = process.env.ALPHA_VANTAGE_API_KEY ?? '';
 const MAX_SERIES_TO_FETCH = 12;
 const MAX_NEWS_MARKERS = 8;
 const BENCHMARK_SYMBOL = 'SPY';
@@ -52,10 +53,28 @@ type WatchlistLeanItem = {
   addedAt: Date;
 };
 
-type FinnhubCandleResponse = {
+type CandleResponse = {
   c?: number[];
   t?: number[];
   s?: string;
+  error?: string;
+};
+
+type AlphaVantageDailyResponse = {
+  'Meta Data'?: Record<string, string>;
+  'Time Series (Daily)'?: Record<
+    string,
+    {
+      '1. open'?: string;
+      '2. high'?: string;
+      '3. low'?: string;
+      '4. close'?: string;
+      '5. volume'?: string;
+    }
+  >;
+  'Error Message'?: string;
+  'Information'?: string;
+  Note?: string;
 };
 
 type FinnhubNewsArticle = {
@@ -112,31 +131,15 @@ function normalizeFinnhubSymbol(symbol: string) {
   return cleaned;
 }
 
-function normalizeStooqSymbol(symbol: string) {
-  const normalized = normalizeFinnhubSymbol(symbol).toLowerCase();
-  if (normalized.includes('.')) return normalized;
-  return `${normalized}.us`;
+function normalizeAlphaVantageSymbol(symbol: string) {
+  return normalizeFinnhubSymbol(symbol);
 }
 
-function getStooqSymbolCandidates(symbol: string) {
-  const normalized = normalizeFinnhubSymbol(symbol).toLowerCase();
-  const withUsSuffix = normalizeStooqSymbol(symbol);
-  const withPlSuffix = normalized.includes('.') ? normalized : `${normalized}.pl`;
-
-  return Array.from(new Set([withUsSuffix, withPlSuffix, normalized]));
-}
-
-function formatStooqDate(date: Date) {
-  const year = date.getUTCFullYear();
-  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-  const day = String(date.getUTCDate()).padStart(2, '0');
-  return `${year}${month}${day}`;
-}
-
-function getCandleUnavailableReason(candles?: FinnhubCandleResponse) {
+function getCandleUnavailableReason(candles?: CandleResponse) {
   if (!candles) return 'Нет ответа от источника исторических данных';
-  if (candles.s === 'no_data') return 'Stooq не вернул исторические цены для доступных вариантов тикера';
-  if (candles.s && candles.s !== 'ok') return `Статус источника исторических данных: ${candles.s}`;
+  if (candles.error) return candles.error;
+  if (candles.s === 'no_data') return 'Alpha Vantage не вернул исторические цены по тикеру';
+  if (candles.s && candles.s !== 'ok') return `Статус Alpha Vantage: ${candles.s}`;
   if (!Array.isArray(candles.c) || !Array.isArray(candles.t)) return 'Некорректный формат свечей';
   if (candles.c.length < 2 || candles.t.length < 2) return 'Недостаточно точек для графика';
   return 'Не удалось построить серию';
@@ -149,7 +152,7 @@ function mapCandlesToSeries({
   isBenchmark = false,
 }: {
   item: Pick<WatchlistLeanItem, 'symbol' | 'company'>;
-  candles: FinnhubCandleResponse;
+  candles: CandleResponse;
   color: string;
   isBenchmark?: boolean;
 }): PriceChartSeries | null {
@@ -188,86 +191,58 @@ function mapCandlesToSeries({
 }
 
 async function getCandles(symbol: string, range: PriceChartRange) {
-  return getStooqDailyCandles(symbol, range);
+  return getAlphaVantageDailyCandles(symbol, range);
 }
 
-async function getStooqDailyCandles(symbol: string, range: PriceChartRange): Promise<FinnhubCandleResponse> {
-  const { from, to } = getUnixRange(range);
-  const extendedFrom = to - 3 * 365 * 24 * 60 * 60;
-  const rangeAttempts = [
-    { from, to },
-    { from: extendedFrom, to },
-  ];
-  const symbolCandidates = getStooqSymbolCandidates(symbol);
-
-  for (const candidate of symbolCandidates) {
-    for (const attempt of rangeAttempts) {
-      const candles = await fetchStooqCandidate(candidate, attempt.from, attempt.to);
-      if (candles.s === 'ok') return trimCandlesToRange(candles, range);
-    }
-  }
-
-  return { s: 'no_data' };
-}
-
-function trimCandlesToRange(
-  candles: FinnhubCandleResponse,
+async function getAlphaVantageDailyCandles(
+  symbol: string,
   range: PriceChartRange
-): FinnhubCandleResponse {
-  if (!Array.isArray(candles.c) || !Array.isArray(candles.t)) return candles;
+): Promise<CandleResponse> {
+  if (!ALPHA_VANTAGE_API_KEY) {
+    return {
+      s: 'error',
+      error: 'Не задан ALPHA_VANTAGE_API_KEY',
+    };
+  }
 
+  const normalizedSymbol = normalizeAlphaVantageSymbol(symbol);
+  const url = `${ALPHA_VANTAGE_BASE_URL}?function=TIME_SERIES_DAILY&symbol=${encodeURIComponent(normalizedSymbol)}&outputsize=compact&apikey=${encodeURIComponent(ALPHA_VANTAGE_API_KEY)}`;
+  const data = await fetchJSON<AlphaVantageDailyResponse>(url, 3600);
+
+  if (data['Error Message']) {
+    return {
+      s: 'error',
+      error: data['Error Message'],
+    };
+  }
+
+  if (data.Note || data.Information) {
+    return {
+      s: 'error',
+      error: data.Note || data.Information,
+    };
+  }
+
+  const timeSeries = data['Time Series (Daily)'];
+  if (!timeSeries || !Object.keys(timeSeries).length) return { s: 'no_data' };
   const limit = RANGE_POINT_LIMIT[range];
-  return {
-    ...candles,
-    c: candles.c.slice(-limit),
-    t: candles.t.slice(-limit),
-  };
-}
+  const rows = Object.entries(timeSeries)
+    .map(([date, values]) => {
+      const closePrice = Number(values['4. close']);
+      const timestamp = Math.floor(new Date(`${date}T00:00:00Z`).getTime() / 1000);
 
-async function fetchStooqCandidate(
-  stooqSymbol: string,
-  from: number,
-  to: number
-): Promise<FinnhubCandleResponse> {
-  const fromDate = formatStooqDate(new Date(from * 1000));
-  const toDate = formatStooqDate(new Date(to * 1000));
-  const url = `${STOOQ_BASE_URL}?s=${encodeURIComponent(stooqSymbol)}&d1=${fromDate}&d2=${toDate}&i=d`;
-  const res = await fetch(url, {
-    cache: 'no-store',
-  });
+      return { closePrice, timestamp };
+    })
+    .filter((row) => Number.isFinite(row.closePrice) && row.closePrice > 0 && row.timestamp > 0)
+    .sort((a, b) => a.timestamp - b.timestamp)
+    .slice(-limit);
 
-  if (!res.ok) {
-    const text = await res.text().catch(() => '');
-    throw new Error(`Stooq fetch failed ${res.status}: ${text}`);
-  }
-
-  const csv = await res.text();
-  const lines = csv.trim().split(/\r?\n/);
-
-  if (lines.length < 2 || lines[0]?.toLowerCase().startsWith('no data')) {
-    return { s: 'no_data' };
-  }
-
-  const timestamps: number[] = [];
-  const closePrices: number[] = [];
-
-  for (const line of lines.slice(1)) {
-    const [date, , , , close] = line.split(',');
-    const closePrice = Number(close);
-    const timestamp = Math.floor(new Date(`${date}T00:00:00Z`).getTime() / 1000);
-
-    if (!date || !Number.isFinite(closePrice) || !Number.isFinite(timestamp)) continue;
-
-    timestamps.push(timestamp);
-    closePrices.push(closePrice);
-  }
-
-  if (closePrices.length < 2) return { s: 'no_data' };
+  if (rows.length < 2) return { s: 'no_data' };
 
   return {
     s: 'ok',
-    c: closePrices,
-    t: timestamps,
+    c: rows.map((row) => row.closePrice),
+    t: rows.map((row) => row.timestamp),
   };
 }
 
@@ -427,7 +402,7 @@ export async function getWatchlistPriceChartData(
       if (result.status === 'rejected') {
         const symbol = itemsToFetch[index].symbol;
         unavailableSymbols.push(symbol);
-        attemptedSymbols[symbol] = getStooqSymbolCandidates(symbol);
+        attemptedSymbols[symbol] = [normalizeAlphaVantageSymbol(symbol)];
         unavailableReasons[symbol] = result.reason instanceof Error
           ? result.reason.message
           : 'Ошибка загрузки candles';
@@ -437,7 +412,7 @@ export async function getWatchlistPriceChartData(
       const mapped = mapCandlesToSeries(result.value);
       if (!mapped) {
         unavailableSymbols.push(result.value.item.symbol);
-        attemptedSymbols[result.value.item.symbol] = getStooqSymbolCandidates(result.value.item.symbol);
+        attemptedSymbols[result.value.item.symbol] = [normalizeAlphaVantageSymbol(result.value.item.symbol)];
         unavailableReasons[result.value.item.symbol] = getCandleUnavailableReason(result.value.candles);
         return;
       }
