@@ -50,13 +50,6 @@ type FinnhubCandleResponse = {
   s?: string;
 };
 
-class FinnhubAccessError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'FinnhubAccessError';
-  }
-}
-
 type FinnhubNewsArticle = {
   id?: number;
   headline?: string;
@@ -83,9 +76,6 @@ async function fetchJSON<T>(url: string, revalidateSeconds = 3600): Promise<T> {
 
   if (!res.ok) {
     const text = await res.text().catch(() => '');
-    if (res.status === 403 && text.includes("don't have access")) {
-      throw new FinnhubAccessError(text || 'Finnhub resource access denied');
-    }
     throw new Error(`Fetch failed ${res.status}: ${text}`);
   }
 
@@ -181,20 +171,8 @@ function mapCandlesToSeries({
   };
 }
 
-async function getCandles(symbol: string, range: PriceChartRange, token: string) {
-  const { from, to } = getUnixRange(range);
-  const normalizedSymbol = normalizeFinnhubSymbol(symbol);
-  const url = `${FINNHUB_BASE_URL}/stock/candle?symbol=${encodeURIComponent(normalizedSymbol)}&resolution=D&from=${from}&to=${to}&token=${token}`;
-
-  try {
-    return await fetchJSON<FinnhubCandleResponse>(url);
-  } catch (err) {
-    if (err instanceof FinnhubAccessError) {
-      return getStooqDailyCandles(symbol, range);
-    }
-
-    throw err;
-  }
+async function getCandles(symbol: string, range: PriceChartRange) {
+  return getStooqDailyCandles(symbol, range);
 }
 
 async function getStooqDailyCandles(symbol: string, range: PriceChartRange): Promise<FinnhubCandleResponse> {
@@ -248,6 +226,8 @@ async function getNewsMarkers(
   range: PriceChartRange,
   token: string
 ): Promise<PriceChartNewsMarker[]> {
+  if (!token) return [];
+
   const { from, to } = getUnixRange(range);
   const fromDate = new Date(from * 1000).toISOString().slice(0, 10);
   const toDate = new Date(to * 1000).toISOString().slice(0, 10);
@@ -339,21 +319,6 @@ export async function getWatchlistPriceChartData(
   const range = normalizeRange(requestedRange);
   const token = getFinnhubToken();
 
-  if (!token) {
-    return {
-      range,
-      generatedAt: new Date().toISOString(),
-      series: [],
-      benchmark: null,
-      newsMarkers: [],
-      aiInsight: 'Исторические данные недоступны: не задан ключ Finnhub.',
-      unavailableSymbols: [],
-      unavailableReasons: {},
-      skippedSymbols: [],
-      error: 'FINNHUB API key is not configured',
-    };
-  }
-
   try {
     const userId = await getCurrentUserId();
     if (!userId) {
@@ -397,7 +362,7 @@ export async function getWatchlistPriceChartData(
     const candlesResults = await Promise.allSettled(
       itemsToFetch.map(async (item, index) => ({
         item,
-        candles: await getCandles(item.symbol, range, token),
+        candles: await getCandles(item.symbol, range),
         color: SERIES_COLORS[index % SERIES_COLORS.length],
       }))
     );
@@ -426,7 +391,7 @@ export async function getWatchlistPriceChartData(
     });
 
     const [benchmarkResult, newsMarkers, aiInsight] = await Promise.all([
-      getCandles(BENCHMARK_SYMBOL, range, token)
+      getCandles(BENCHMARK_SYMBOL, range)
         .then((candles) =>
           mapCandlesToSeries({
             item: { symbol: BENCHMARK_SYMBOL, company: 'S&P 500 ETF' },
