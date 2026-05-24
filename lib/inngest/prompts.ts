@@ -245,6 +245,39 @@ Watchlist market data captured at notification send time:
 
 Пиши живо, кратко и без инвестиционных рекомендаций вроде "покупать" или "продавать".`
 
+export const NEWS_IMPACT_ANALYSIS_PROMPT = `Проанализируй новости и данные watchlist. Верни AI-оценку влияния новостей на каждую компанию из watchlistData.
+
+News data:
+{{newsData}}
+
+Watchlist market data:
+{{watchlistData}}
+
+Верни ТОЛЬКО валидный JSON без markdown, без code fences и без пояснений.
+
+Формат ответа:
+{
+  "items": [
+    {
+      "symbol": "MSFT",
+      "rating": 4,
+      "sentiment": "positive",
+      "priceImpact": "Коротко: как новости могут повлиять на цену акции в ближайшей перспективе.",
+      "businessImpact": "Коротко: как новости влияют на общее положение дел компании.",
+      "shortSummary": "Один общий вывод по компании."
+    }
+  ]
+}
+
+Правила:
+- Создай item для каждой компании из watchlistData.
+- rating: целое число от 1 до 5, где 1 = слабое влияние, 5 = сильное влияние.
+- sentiment: строго одно из значений: positive, neutral, negative, mixed.
+- priceImpact и businessImpact пиши на русском языке, по 1 короткому предложению.
+- shortSummary пиши на русском языке, максимум 160 символов.
+- Не давай инвестиционных рекомендаций покупать или продавать.
+- Если новостей по компании мало, поставь rating 1-2 и объясни, что влияние ограничено.`
+
 export const TRADINGVIEW_SYMBOL_MAPPING_PROMPT = `You are an expert in financial markets and trading platforms. Your task is to find the correct TradingView symbol that corresponds to a given Finnhub stock symbol.
 
 Stock information from Finnhub:

@@ -2,6 +2,7 @@ import { inngest } from "@/lib/inngest/client";
 import { callGemini } from "@/lib/ai/gemini";
 
 import {
+  NEWS_IMPACT_ANALYSIS_PROMPT,
   NEWS_SUMMARY_EMAIL_PROMPT,
   NEWS_SUMMARY_TELEGRAM_PROMPT,
   PERSONALIZED_WELCOME_EMAIL_PROMPT,
@@ -23,6 +24,156 @@ function escapeHtml(value: string) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+type NewsImpactAnalysis = {
+  symbol: string;
+  rating: number;
+  sentiment: "positive" | "neutral" | "negative" | "mixed";
+  priceImpact: string;
+  businessImpact: string;
+  shortSummary: string;
+};
+
+const SENTIMENT_LABELS: Record<NewsImpactAnalysis["sentiment"], string> = {
+  positive: "Позитивная",
+  neutral: "Нейтральная",
+  negative: "Негативная",
+  mixed: "Смешанная",
+};
+
+const SENTIMENT_COLORS: Record<NewsImpactAnalysis["sentiment"], string> = {
+  positive: "#86EFAC",
+  neutral: "#CCDADC",
+  negative: "#FCA5A5",
+  mixed: "#FDD458",
+};
+
+function clampRating(value: unknown) {
+  const rating = Number(value);
+  if (!Number.isFinite(rating)) return 1;
+  return Math.min(5, Math.max(1, Math.round(rating)));
+}
+
+function normalizeSentiment(value: unknown): NewsImpactAnalysis["sentiment"] {
+  if (
+    value === "positive" ||
+    value === "neutral" ||
+    value === "negative" ||
+    value === "mixed"
+  ) {
+    return value;
+  }
+
+  return "neutral";
+}
+
+function extractJson(value: string) {
+  return value
+    .trim()
+    .replace(/^```(?:json)?/i, "")
+    .replace(/```$/i, "")
+    .trim();
+}
+
+function parseImpactAnalyses(value: string | null): NewsImpactAnalysis[] {
+  if (!value) return [];
+
+  try {
+    const parsed = JSON.parse(extractJson(value)) as {
+      items?: Array<Partial<NewsImpactAnalysis>>;
+    };
+
+    if (!Array.isArray(parsed.items)) return [];
+
+    return parsed.items
+      .filter((item) => item.symbol)
+      .map((item) => ({
+        symbol: String(item.symbol).trim().toUpperCase(),
+        rating: clampRating(item.rating),
+        sentiment: normalizeSentiment(item.sentiment),
+        priceImpact: String(item.priceImpact || "Влияние на цену ограничено.").trim(),
+        businessImpact: String(item.businessImpact || "Существенных изменений в положении компании не выявлено.").trim(),
+        shortSummary: String(item.shortSummary || "Новость имеет ограниченное влияние.").trim(),
+      }));
+  } catch (err) {
+    console.error("impact analysis parse error:", err);
+    return [];
+  }
+}
+
+async function getImpactAnalyses(newsData: string, watchlistData: string) {
+  try {
+    const prompt = NEWS_IMPACT_ANALYSIS_PROMPT
+      .replace("{{newsData}}", newsData)
+      .replace("{{watchlistData}}", watchlistData);
+
+    const result = await callGemini(prompt);
+    return parseImpactAnalyses(result);
+  } catch (err) {
+    console.error("impact analysis error:", err);
+    return [];
+  }
+}
+
+function buildImpactEmailBlock(impactAnalyses: NewsImpactAnalysis[]) {
+  if (!impactAnalyses.length) return "";
+
+  const rows = impactAnalyses
+    .map((item) => {
+      const sentimentLabel = SENTIMENT_LABELS[item.sentiment];
+      const sentimentColor = SENTIMENT_COLORS[item.sentiment];
+
+      return `
+<tr>
+  <td style="padding: 12px 10px; border-bottom: 1px solid #374151;">
+    <strong style="color: #FFFFFF;">${escapeHtml(item.symbol)}</strong>
+    <div style="color: #9CA3AF; font-size: 13px; line-height: 1.4;">${escapeHtml(item.shortSummary)}</div>
+  </td>
+  <td style="padding: 12px 10px; border-bottom: 1px solid #374151; color: #FDD458; text-align: center; white-space: nowrap;">${item.rating}/5</td>
+  <td style="padding: 12px 10px; border-bottom: 1px solid #374151; color: ${sentimentColor}; text-align: center; white-space: nowrap;">${escapeHtml(sentimentLabel)}</td>
+  <td style="padding: 12px 10px; border-bottom: 1px solid #374151; color: #CCDADC;">${escapeHtml(item.priceImpact)} ${escapeHtml(item.businessImpact)}</td>
+</tr>`;
+    })
+    .join("");
+
+  return `
+<h3 class="mobile-news-title dark-text" style="margin: 30px 0 15px 0; font-size: 18px; font-weight: 600; color: #f8f9fa; line-height: 1.3;">🤖 AI-рейтинг влияния новостей</h3>
+<p class="mobile-text dark-text-secondary" style="margin: 0 0 14px 0; font-size: 14px; line-height: 1.5; color: #9CA3AF;">Оценка от 1 до 5 показывает предполагаемую силу влияния новости на цену и положение компании.</p>
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse: collapse; background-color: #212328; border-radius: 8px; overflow: hidden; margin: 0 0 24px 0;">
+  <thead>
+    <tr>
+      <th align="left" style="padding: 12px 10px; border-bottom: 1px solid #374151; color: #FDD458; font-size: 13px;">Компания</th>
+      <th align="center" style="padding: 12px 10px; border-bottom: 1px solid #374151; color: #FDD458; font-size: 13px;">Рейтинг</th>
+      <th align="center" style="padding: 12px 10px; border-bottom: 1px solid #374151; color: #FDD458; font-size: 13px;">Тональность</th>
+      <th align="left" style="padding: 12px 10px; border-bottom: 1px solid #374151; color: #FDD458; font-size: 13px;">Влияние</th>
+    </tr>
+  </thead>
+  <tbody>${rows}</tbody>
+</table>
+<div style="border-top: 1px solid #374151; margin: 28px 0 24px 0;"></div>`;
+}
+
+function buildImpactTelegramBlock(impactAnalyses: NewsImpactAnalysis[]) {
+  if (!impactAnalyses.length) return "";
+
+  const rows = impactAnalyses
+    .map((item) => {
+      const sentimentLabel = SENTIMENT_LABELS[item.sentiment];
+      return [
+        `🤖 <b>${escapeTelegramHtml(item.symbol)}</b> · рейтинг ${item.rating}/5 · ${escapeTelegramHtml(sentimentLabel)}`,
+        `Цена: ${escapeTelegramHtml(item.priceImpact)}`,
+        `Положение: ${escapeTelegramHtml(item.businessImpact)}`,
+      ].join("\n");
+    })
+    .join("\n\n");
+
+  return [
+    "<b>AI-рейтинг влияния новостей</b>",
+    rows,
+    "━━━━━━━━━━━━━━━━",
+    "",
+  ].join("\n");
 }
 
 function getNotificationTimestamp() {
@@ -317,14 +468,17 @@ export const sendDailyNewsSummary = inngest.createFunction(
           const serializedWatchlist = serializeWatchlistData(watchlistStocks);
           const emailWatchlistBlock = buildWatchlistEmailBlock(watchlistStocks, capturedAt);
           const telegramWatchlistBlock = buildWatchlistTelegramBlock(watchlistStocks, capturedAt);
+          const impactAnalyses = await getImpactAnalyses(serializedArticles, serializedWatchlist);
+          const emailImpactBlock = buildImpactEmailBlock(impactAnalyses);
+          const telegramImpactBlock = buildImpactTelegramBlock(impactAnalyses);
           const prompt = NEWS_SUMMARY_EMAIL_PROMPT
             .replace("{{newsData}}", serializedArticles)
             .replace("{{watchlistData}}", serializedWatchlist);
 
           const generatedEmailContent = await callGemini(prompt);
           const newsContent = generatedEmailContent
-            ? `${emailWatchlistBlock}${generatedEmailContent}`
-            : emailWatchlistBlock;
+            ? `${emailWatchlistBlock}${emailImpactBlock}${generatedEmailContent}`
+            : `${emailWatchlistBlock}${emailImpactBlock}`;
           let telegramContent: string | null = null;
 
           if (user.telegramEnabled && user.telegramChatId) {
@@ -335,8 +489,8 @@ export const sendDailyNewsSummary = inngest.createFunction(
 
             const generatedTelegramContent = await callGemini(telegramPrompt);
             telegramContent = generatedTelegramContent
-              ? `${telegramWatchlistBlock}${generatedTelegramContent}`
-              : telegramWatchlistBlock;
+              ? `${telegramWatchlistBlock}${telegramImpactBlock}${generatedTelegramContent}`
+              : `${telegramWatchlistBlock}${telegramImpactBlock}`;
           }
 
           console.log("✅ AI result:", newsContent?.slice?.(0, 100));
@@ -348,6 +502,7 @@ export const sendDailyNewsSummary = inngest.createFunction(
             stocks: watchlistStocks,
             articles,
             summaryHtml: generatedEmailContent || newsContent || "",
+            impactAnalyses,
           });
 
           summaries.push({
@@ -370,6 +525,7 @@ export const sendDailyNewsSummary = inngest.createFunction(
             stocks: watchlistStocks,
             articles,
             summaryHtml: fallbackEmailContent,
+            impactAnalyses: [],
           });
 
           summaries.push({

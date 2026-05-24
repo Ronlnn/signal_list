@@ -14,7 +14,20 @@ type SummaryHistoryLeanItem = {
   company: string;
   price: string;
   shortSummary: string;
+  impactRating?: number;
+  sentiment?: 'positive' | 'neutral' | 'negative' | 'mixed';
+  priceImpact?: string;
+  businessImpact?: string;
   generatedAt: Date;
+};
+
+type NewsImpactAnalysis = {
+  symbol: string;
+  rating: number;
+  sentiment: 'positive' | 'neutral' | 'negative' | 'mixed';
+  priceImpact: string;
+  businessImpact: string;
+  shortSummary: string;
 };
 
 type SaveSummaryHistoryParams = {
@@ -24,6 +37,7 @@ type SaveSummaryHistoryParams = {
   stocks: StockWithData[];
   articles: MarketNewsArticle[];
   summaryHtml: string;
+  impactAnalyses?: NewsImpactAnalysis[];
 };
 
 function normalizeText(value: string) {
@@ -68,8 +82,11 @@ function getRelatedArticle(stock: StockWithData, articles: MarketNewsArticle[]) 
 function buildCompanySummary(
   stock: StockWithData,
   articles: MarketNewsArticle[],
-  summaryHtml: string
+  summaryHtml: string,
+  impact?: NewsImpactAnalysis
 ) {
+  if (impact?.shortSummary) return truncate(impact.shortSummary);
+
   const relatedArticle = getRelatedArticle(stock, articles);
 
   if (relatedArticle) {
@@ -82,6 +99,12 @@ function buildCompanySummary(
   if (overallSummary) return truncate(overallSummary);
 
   return 'Сводка сохранена, но отдельного вывода по компании не сформировано.';
+}
+
+function getImpactForStock(stock: StockWithData, impactAnalyses: NewsImpactAnalysis[]) {
+  return impactAnalyses.find(
+    (item) => item.symbol.toUpperCase() === stock.symbol.toUpperCase()
+  );
 }
 
 async function getCurrentUserId() {
@@ -97,6 +120,7 @@ export async function saveSummaryHistory({
   stocks,
   articles,
   summaryHtml,
+  impactAnalyses = [],
 }: SaveSummaryHistoryParams) {
   if (!userId || !email || !stocks.length) return;
 
@@ -104,15 +128,23 @@ export async function saveSummaryHistory({
     await connectToDatabase();
 
     await SummaryHistory.insertMany(
-      stocks.map((stock) => ({
-        userId,
-        email,
-        symbol: stock.symbol,
-        company: stock.company || stock.symbol,
-        price: stock.priceFormatted || 'Нет данных',
-        shortSummary: buildCompanySummary(stock, articles, summaryHtml),
-        generatedAt,
-      }))
+      stocks.map((stock) => {
+        const impact = getImpactForStock(stock, impactAnalyses);
+
+        return {
+          userId,
+          email,
+          symbol: stock.symbol,
+          company: stock.company || stock.symbol,
+          price: stock.priceFormatted || 'Нет данных',
+          shortSummary: buildCompanySummary(stock, articles, summaryHtml, impact),
+          impactRating: impact?.rating || 1,
+          sentiment: impact?.sentiment || 'neutral',
+          priceImpact: impact?.priceImpact || 'Влияние на цену ограничено.',
+          businessImpact: impact?.businessImpact || 'Существенных изменений в положении компании не выявлено.',
+          generatedAt,
+        };
+      })
     );
 
     revalidatePath('/summaries');
@@ -145,6 +177,10 @@ export async function getCurrentUserSummaryHistory(limit = 100) {
       symbol: item.symbol,
       price: item.price,
       shortSummary: item.shortSummary,
+      impactRating: item.impactRating || 1,
+      sentiment: item.sentiment || 'neutral',
+      priceImpact: item.priceImpact || 'Влияние на цену ограничено.',
+      businessImpact: item.businessImpact || 'Существенных изменений в положении компании не выявлено.',
     }));
   } catch (err) {
     console.error('getCurrentUserSummaryHistory error:', err);

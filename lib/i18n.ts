@@ -136,7 +136,16 @@ export const messages = {
       date: 'Дата',
       company: 'Компания',
       summary: 'Краткий вывод',
+      rating: 'AI-рейтинг',
+      sentiment: 'Тональность',
+      impact: 'Влияние',
       price: 'Цена',
+    },
+    sentiment: {
+      positive: 'Позитивная',
+      neutral: 'Нейтральная',
+      negative: 'Негативная',
+      mixed: 'Смешанная',
     },
   },
   aiChat: {
