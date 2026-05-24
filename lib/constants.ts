@@ -4,6 +4,7 @@ export const NAV_ITEMS = [
     { href: '/', label: t('nav.dashboard') },
     { href: '/search', label: t('nav.search') },
     { href: '/watchlist', label: t('nav.watchlist') },
+    { href: '/summaries', label: t('nav.summaries') },
 ];
 
 // Sign-up form select options

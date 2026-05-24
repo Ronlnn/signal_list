@@ -11,6 +11,7 @@ import { sendNewsSummaryEmail, sendWelcomeEmail } from "@/lib/nodemailer";
 import { getAllUsersForNewsEmail } from "@/lib/actions/user.actions";
 import { getWatchlistItemsByEmail } from "@/lib/actions/watchlist.actions";
 import { getNews, getWatchlistStocksData } from "@/lib/actions/finnhub.actions";
+import { saveSummaryHistory } from "@/lib/actions/summary-history.actions";
 import { getFormattedTodayDate } from "@/lib/utils";
 import {t} from "@/lib/i18n";
 import { escapeTelegramHtml, sendTelegramMessage } from "@/lib/telegram";
@@ -253,6 +254,7 @@ export const sendDailyNewsSummary = inngest.createFunction(
           console.log("🤖 summarizing for:", user.email);
 
           const date = getFormattedTodayDate();
+          const generatedAt = new Date();
           const capturedAt = getNotificationTimestamp();
           const serializedArticles = JSON.stringify(articles, null, 2);
           const serializedWatchlist = serializeWatchlistData(watchlistStocks);
@@ -282,6 +284,15 @@ export const sendDailyNewsSummary = inngest.createFunction(
 
           console.log("✅ AI result:", newsContent?.slice?.(0, 100));
 
+          await saveSummaryHistory({
+            userId: user.id,
+            email: user.email,
+            generatedAt,
+            stocks: watchlistStocks,
+            articles,
+            summaryHtml: generatedEmailContent || newsContent || "",
+          });
+
           summaries.push({
             user,
             newsContent: newsContent || buildWatchlistEmailBlock(watchlistStocks, getNotificationTimestamp()) || t('fallbacks.noMarketNews'),
@@ -291,9 +302,22 @@ export const sendDailyNewsSummary = inngest.createFunction(
           await new Promise((r) => setTimeout(r, 3000));
         } catch (e) {
           console.error("❌ AI error:", user.email, e);
+          const fallbackEmailContent =
+            buildWatchlistEmailBlock(watchlistStocks, getNotificationTimestamp()) ||
+            t('fallbacks.noMarketNews');
+
+          await saveSummaryHistory({
+            userId: user.id,
+            email: user.email,
+            generatedAt: new Date(),
+            stocks: watchlistStocks,
+            articles,
+            summaryHtml: fallbackEmailContent,
+          });
+
           summaries.push({
             user,
-            newsContent: buildWatchlistEmailBlock(watchlistStocks, getNotificationTimestamp()) || t('fallbacks.noMarketNews'),
+            newsContent: fallbackEmailContent,
             telegramContent: buildWatchlistTelegramBlock(watchlistStocks, getNotificationTimestamp()) || t('fallbacks.telegramNoMarketNews'),
           });
         }

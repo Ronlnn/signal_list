@@ -5,6 +5,7 @@ export const messages = {
     dashboard: 'Панель',
     search: 'Поиск',
     watchlist: 'Мой список',
+    summaries: 'История сводок',
   },
   metadata: {
     title: 'Signalist',
@@ -116,6 +117,19 @@ export const messages = {
     triggering: 'Запускаем отправку...',
     triggeredToast: 'Сводка поставлена в очередь отправки',
     triggerFailed: 'Не удалось запустить отправку сводки',
+  },
+  summaryHistory: {
+    pageTitle: 'История сводок',
+    pageDescription: 'Сохраненные результаты дневных AI-сводок по компаниям из вашего списка.',
+    emptyTitle: 'История пока пуста',
+    emptyDescription: 'Запустите дневную сводку вручную или дождитесь автоматической отправки. После генерации здесь появятся сохраненные выводы по компаниям.',
+    openWatchlist: 'Перейти к моему списку',
+    table: {
+      date: 'Дата',
+      company: 'Компания',
+      summary: 'Краткий вывод',
+      price: 'Цена',
+    },
   },
   aiChat: {
     title: 'AI-аналитик',
