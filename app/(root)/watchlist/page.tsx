@@ -2,10 +2,12 @@ import Link from "next/link";
 import SearchCommand from "@/components/SearchCommand";
 import TelegramConnectButton from "@/components/TelegramConnectButton";
 import NotificationTriggerButton from "@/components/NotificationTriggerButton";
+import NotificationScheduleForm from "@/components/NotificationScheduleForm";
 import AiChatPanel from "@/components/AiChatPanel";
 import WatchlistButton from "@/components/WatchlistButton";
 import { getCurrentUserWatchlistWithData } from "@/lib/actions/watchlist.actions";
 import { getCurrentTelegramPreference } from "@/lib/actions/telegram.actions";
+import { getCurrentNotificationSettings } from "@/lib/actions/notification.actions";
 import { searchStocks } from "@/lib/actions/finnhub.actions";
 import { getChangeColorClass } from "@/lib/utils";
 import { t } from "@/lib/i18n";
@@ -13,10 +15,11 @@ import { t } from "@/lib/i18n";
 export const dynamic = "force-dynamic";
 
 export default async function WatchlistPage() {
-  const [watchlist, initialStocks, telegramPreference] = await Promise.all([
+  const [watchlist, initialStocks, telegramPreference, notificationSettings] = await Promise.all([
     getCurrentUserWatchlistWithData(),
     searchStocks(),
     getCurrentTelegramPreference(),
+    getCurrentNotificationSettings(),
   ]);
   const isTelegramConnected = Boolean(telegramPreference?.telegramEnabled);
   const telegramUsername = telegramPreference?.telegramUsername
@@ -48,6 +51,12 @@ export default async function WatchlistPage() {
           <NotificationTriggerButton />
         </div>
       </div>
+
+      <NotificationScheduleForm
+        initialTime={notificationSettings.notificationTime}
+        initialTimezone={notificationSettings.notificationTimezone}
+        isScheduleConfigured={notificationSettings.isScheduleConfigured}
+      />
     </div>
   );
 

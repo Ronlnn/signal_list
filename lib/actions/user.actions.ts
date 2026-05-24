@@ -7,6 +7,9 @@ type NotificationPreference = {
     telegramChatId?: number;
     telegramEnabled?: boolean;
     emailEnabled?: boolean;
+    notificationTime?: string;
+    notificationTimezone?: string;
+    lastScheduledSummaryDate?: string;
 };
 
 export const getAllUsersForNewsEmail = async () => {
@@ -43,10 +46,47 @@ export const getAllUsersForNewsEmail = async () => {
                 emailEnabled: preference?.emailEnabled !== false,
                 telegramEnabled: Boolean(preference?.telegramEnabled && preference.telegramChatId),
                 telegramChatId: preference?.telegramChatId,
+                notificationTime: preference?.notificationTime || '12:00',
+                notificationTimezone: preference?.notificationTimezone || 'Europe/Moscow',
+                lastScheduledSummaryDate: preference?.lastScheduledSummaryDate || '',
             };
         });
     } catch (e) {
         console.error('Error fetching users for news email:', e)
         return []
+    }
+}
+
+export const markScheduledSummarySent = async (
+    userId: string,
+    email: string,
+    localDate: string
+) => {
+    try {
+        const mongoose = await connectToDatabase();
+        const db = mongoose.connection.db;
+        if(!db) throw new Error('Mongoose connection not connected');
+
+        await db.collection('notification_preferences').updateOne(
+            { userId },
+            {
+                $set: {
+                    userId,
+                    email,
+                    emailEnabled: true,
+                    lastScheduledSummaryDate: localDate,
+                    updatedAt: new Date(),
+                },
+                $setOnInsert: {
+                    telegramEnabled: false,
+                    notificationTime: '12:00',
+                    notificationTimezone: 'Europe/Moscow',
+                    createdAt: new Date(),
+                },
+            },
+            { upsert: true }
+        );
+    } catch (e) {
+        console.error('markScheduledSummarySent error:', e);
     }
 }

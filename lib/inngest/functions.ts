@@ -8,7 +8,7 @@ import {
 } from "@/lib/inngest/prompts";
 
 import { sendNewsSummaryEmail, sendWelcomeEmail } from "@/lib/nodemailer";
-import { getAllUsersForNewsEmail } from "@/lib/actions/user.actions";
+import { getAllUsersForNewsEmail, markScheduledSummarySent } from "@/lib/actions/user.actions";
 import { getWatchlistItemsByEmail } from "@/lib/actions/watchlist.actions";
 import { getNews, getWatchlistStocksData } from "@/lib/actions/finnhub.actions";
 import { saveSummaryHistory } from "@/lib/actions/summary-history.actions";
@@ -31,6 +31,52 @@ function getNotificationTimestamp() {
     timeStyle: "short",
     timeZone: "Europe/Moscow",
   }).format(new Date());
+}
+
+type NewsSummaryUser = Awaited<ReturnType<typeof getAllUsersForNewsEmail>>[number];
+
+function parseScheduleMinutes(value?: string) {
+  const [hours, minutes] = (value || "12:00").split(":").map(Number);
+  if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return 12 * 60;
+  return hours * 60 + minutes;
+}
+
+function getLocalScheduleSnapshot(date: Date, timeZone?: string) {
+  const safeTimeZone = timeZone || "Europe/Moscow";
+
+  try {
+    const parts = new Intl.DateTimeFormat("en-CA", {
+      timeZone: safeTimeZone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23",
+    }).formatToParts(date);
+
+    const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+    const localDate = `${values.year}-${values.month}-${values.day}`;
+    const localMinutes = Number(values.hour) * 60 + Number(values.minute);
+
+    return { localDate, localMinutes };
+  } catch {
+    return getLocalScheduleSnapshot(date, "Europe/Moscow");
+  }
+}
+
+function getScheduledDueDate(user: NewsSummaryUser, now: Date) {
+  const { localDate, localMinutes } = getLocalScheduleSnapshot(
+    now,
+    user.notificationTimezone
+  );
+  const targetMinutes = parseScheduleMinutes(user.notificationTime);
+  const minutesAfterTarget = localMinutes - targetMinutes;
+
+  if (user.lastScheduledSummaryDate === localDate) return null;
+  if (minutesAfterTarget < 0 || minutesAfterTarget > 20) return null;
+
+  return localDate;
 }
 
 function serializeWatchlistData(stocks: StockWithData[]) {
@@ -185,7 +231,7 @@ export const sendDailyNewsSummary = inngest.createFunction(
   { id: "daily-news-summary" },
   [
     { event: "app/send.daily.news" },
-    { cron: "0 12 * * *" },
+    { cron: "*/15 * * * *" },
   ],
   async ({ event }) => {
     try {
@@ -196,6 +242,7 @@ export const sendDailyNewsSummary = inngest.createFunction(
       let users = await getAllUsersForNewsEmail();
       const targetUserId = event.data?.userId ? String(event.data.userId) : "";
       const targetEmail = event.data?.email ? String(event.data.email) : "";
+      const scheduledDatesByUserId = new Map<string, string>();
 
       if (targetUserId || targetEmail) {
         users = users.filter((user) => {
@@ -203,6 +250,16 @@ export const sendDailyNewsSummary = inngest.createFunction(
             (targetUserId && user.id === targetUserId) ||
             (targetEmail && user.email === targetEmail)
           );
+        });
+      } else {
+        const now = new Date();
+
+        users = users.filter((user) => {
+          const scheduledLocalDate = getScheduledDueDate(user, now);
+          if (!scheduledLocalDate) return false;
+
+          scheduledDatesByUserId.set(user.id, scheduledLocalDate);
+          return true;
         });
       }
 
@@ -354,6 +411,11 @@ export const sendDailyNewsSummary = inngest.createFunction(
             }
           } catch (e) {
             console.error("❌ telegram error:", user.email, e);
+          }
+
+          const scheduledLocalDate = scheduledDatesByUserId.get(user.id);
+          if (scheduledLocalDate) {
+            await markScheduledSummarySent(user.id, user.email, scheduledLocalDate);
           }
         })
       );
