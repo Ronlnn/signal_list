@@ -225,7 +225,7 @@ function getScheduledDueDate(user: NewsSummaryUser, now: Date) {
   const minutesAfterTarget = localMinutes - targetMinutes;
 
   if (user.lastScheduledSummaryDate === localDate) return null;
-  if (minutesAfterTarget < 0 || minutesAfterTarget > 20) return null;
+  if (minutesAfterTarget < 0 || minutesAfterTarget > 6) return null;
 
   return localDate;
 }
@@ -382,7 +382,7 @@ export const sendDailyNewsSummary = inngest.createFunction(
   { id: "daily-news-summary" },
   [
     { event: "app/send.daily.news" },
-    { cron: "*/15 * * * *" },
+    { cron: "*/5 * * * *" },
   ],
   async ({ event }) => {
     try {
