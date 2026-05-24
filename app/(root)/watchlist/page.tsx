@@ -3,6 +3,7 @@ import SearchCommand from "@/components/SearchCommand";
 import TelegramConnectButton from "@/components/TelegramConnectButton";
 import NotificationTriggerButton from "@/components/NotificationTriggerButton";
 import NotificationScheduleForm from "@/components/NotificationScheduleForm";
+import WatchlistPriceChart from "@/components/WatchlistPriceChart";
 import AiChatPanel from "@/components/AiChatPanel";
 import WatchlistButton from "@/components/WatchlistButton";
 import { getCurrentUserWatchlistWithData } from "@/lib/actions/watchlist.actions";
@@ -136,6 +137,8 @@ export default async function WatchlistPage() {
           </tbody>
         </table>
       </div>
+
+      <WatchlistPriceChart />
 
       <AiChatPanel mode="watchlist" />
     </section>

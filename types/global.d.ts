@@ -148,6 +148,49 @@ declare global {
         peRatio?: string;
     };
 
+    type PriceChartRange = '7d' | '1m' | '3m' | '6m' | '1y';
+
+    type PriceChartMode = 'percent' | 'price';
+
+    type PriceChartPoint = {
+        date: string;
+        timestamp: number;
+        price: number;
+        changePercent: number;
+    };
+
+    type PriceChartSeries = {
+        symbol: string;
+        company: string;
+        color: string;
+        currentPriceFormatted: string;
+        periodChangePercent: number;
+        periodChangeFormatted: string;
+        points: PriceChartPoint[];
+        isBenchmark?: boolean;
+    };
+
+    type PriceChartNewsMarker = {
+        id: string;
+        symbol: string;
+        headline: string;
+        url: string;
+        date: string;
+        timestamp: number;
+    };
+
+    type PriceChartData = {
+        range: PriceChartRange;
+        generatedAt: string;
+        series: PriceChartSeries[];
+        benchmark: PriceChartSeries | null;
+        newsMarkers: PriceChartNewsMarker[];
+        aiInsight: string;
+        unavailableSymbols: string[];
+        skippedSymbols: string[];
+        error?: string;
+    };
+
     type AlertsListProps = {
         alertData: Alert[] | undefined;
     };
